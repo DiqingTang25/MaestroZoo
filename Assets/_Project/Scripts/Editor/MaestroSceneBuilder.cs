@@ -92,6 +92,10 @@ public static class MaestroSceneBuilder
         director.gestureInput = inputDispatcher;
         director.orchestra = orchestra;
 
+        var sfx = directorGo.AddComponent<GameSfxPlayer>();
+        sfx.judgeManager = judge;
+        sfx.gestureInput = inputDispatcher;
+
         // ═══ NOTE TEMPLATE ═══
         var noteRoot = new GameObject("FlyingNote");
         noteRoot.transform.SetParent(directorGo.transform);
@@ -291,6 +295,22 @@ public static class MaestroSceneBuilder
         hud.maxComboText = Txt("MaxCombo", canvasGo.transform, 80, -80,  0, 1,        18, TextAnchor.MiddleLeft);
         hud.judgeText    = Txt("Judgment", canvasGo.transform, 0,  -250, 0.5f, 0.5f, 38, TextAnchor.MiddleCenter);
         hud.maxComboText.color = new Color(1, 1, 1, 0.45f);
+
+        var resultsPanel = new GameObject("ResultsPanel");
+        resultsPanel.transform.SetParent(canvasGo.transform);
+        var resultsRt = resultsPanel.AddComponent<RectTransform>();
+        resultsRt.anchorMin = resultsRt.anchorMax = new Vector2(0.5f, 0.5f);
+        resultsRt.anchoredPosition = Vector2.zero;
+        resultsRt.sizeDelta = new Vector2(760, 430);
+        var resultsImage = resultsPanel.AddComponent<Image>();
+        resultsImage.color = new Color(0.03f, 0.04f, 0.06f, 0.84f);
+
+        hud.resultsPanel = resultsPanel;
+        hud.resultsTitleText = Txt("ResultsTitle", resultsPanel.transform, 0, 150, 0.5f, 0.5f, 32, TextAnchor.MiddleCenter);
+        hud.resultsScoreText = Txt("ResultsScore", resultsPanel.transform, 0, 70, 0.5f, 0.5f, 64, TextAnchor.MiddleCenter);
+        hud.resultsStatsText = Txt("ResultsStats", resultsPanel.transform, 0, -70, 0.5f, 0.5f, 28, TextAnchor.MiddleCenter);
+        hud.resultsStatsText.rectTransform.sizeDelta = new Vector2(680, 180);
+        hud.SetResultsVisible(false);
 
         // Progress bar
         var prog = new GameObject("Progress");

@@ -22,6 +22,12 @@ namespace MaestroZoo
         public Slider moodBar;
         public Image feverGlow;
 
+        [Header("Results")]
+        public GameObject resultsPanel;
+        public Text resultsTitleText;
+        public Text resultsScoreText;
+        public Text resultsStatsText;
+
         private float judgeFlashTimer;
 
         public void SetScore(int score)
@@ -82,6 +88,38 @@ namespace MaestroZoo
         public void SetFever(bool active)
         {
             if (feverGlow != null) feverGlow.enabled = active;
+        }
+
+        public void SetResultsVisible(bool visible)
+        {
+            if (resultsPanel != null) resultsPanel.SetActive(visible);
+        }
+
+        public void ShowResults(JudgeManager judgeManager, string title)
+        {
+            if (judgeManager == null) return;
+
+            SetResultsVisible(true);
+
+            if (resultsTitleText != null)
+            {
+                resultsTitleText.text = string.IsNullOrEmpty(title) ? "Results" : title;
+            }
+
+            if (resultsScoreText != null)
+            {
+                resultsScoreText.text = judgeManager.Score.ToString("N0");
+            }
+
+            if (resultsStatsText != null)
+            {
+                int accuracy = Mathf.RoundToInt(judgeManager.Accuracy * 100f);
+                resultsStatsText.text =
+                    $"Accuracy {accuracy}%\n" +
+                    $"Max Combo {judgeManager.MaxCombo}\n" +
+                    $"Perfect {judgeManager.PerfectCount}   Good {judgeManager.GoodCount}   Miss {judgeManager.MissCount}\n" +
+                    $"Wrong Gesture {judgeManager.WrongGestureCount}";
+            }
         }
 
         private void Update()

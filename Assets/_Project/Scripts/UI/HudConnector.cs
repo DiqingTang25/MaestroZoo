@@ -9,6 +9,8 @@ namespace MaestroZoo
         public JudgeManager judgeManager;
         public OrchestraController orchestra;
 
+        private MaestroGameMode lastMode;
+
         private void Start()
         {
             if (judgeManager != null)
@@ -34,6 +36,19 @@ namespace MaestroZoo
             {
                 gameHud.SetMood(Mathf.Clamp01(orchestra.Mood / 100f));
                 gameHud.SetFever(orchestra.FeverActive);
+            }
+
+            if (gameDirector.Mode != lastMode)
+            {
+                lastMode = gameDirector.Mode;
+                if (lastMode == MaestroGameMode.Results)
+                {
+                    gameHud.ShowResults(judgeManager, gameDirector.CurrentModeTitle);
+                }
+                else
+                {
+                    gameHud.SetResultsVisible(false);
+                }
             }
         }
 
