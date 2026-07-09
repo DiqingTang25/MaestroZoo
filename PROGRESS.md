@@ -18,6 +18,8 @@ Last updated: 2026-07-09 (Claude sync, commit 18371b0)
 | Claude | ✅ 音频延迟补偿 CompensatedSongTime | 2ac1e2a |
 | Claude | ✅ 动物模型双模 idle/score 接入 | 6970cf1 |
 | Claude | ✅ 猫头鹰老师教程系统 OwlTutorialController | b468ab1 |
+| Claude | ✅ 难度分级 Easy/Normal/Hard + 延迟预设库 | d4e233a |
+| Claude | ✅ FreeStage 增强 (节拍器+手势提示+即兴评分) | 0090fa9 |
 | Codex | ✅ figaro 谱面 + ChartDebugPanel | 5428aa9 |
 
 ## 新增 API 速查 (给 Codex)
