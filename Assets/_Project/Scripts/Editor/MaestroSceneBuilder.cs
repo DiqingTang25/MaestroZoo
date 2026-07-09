@@ -8,6 +8,21 @@ public static class MaestroSceneBuilder
 {
     private const string ScenePath = "Assets/_Project/Scenes/Main.unity";
     private const string DifficultyAssetDir = "Assets/_Project/Resources/Difficulty";
+    private static readonly Vector3 RokidCameraPosition = new Vector3(6.2f, 2.25f, 0f);
+    private static readonly Vector3 RokidCameraLookAt = new Vector3(0f, 1.15f, 0f);
+    private static readonly Color RokidCameraBackground = new Color(0.005f, 0.006f, 0.008f, 1f);
+    private static readonly Color RokidAmbientLight = new Color(0.035f, 0.04f, 0.045f);
+    private const float RokidDirectionalLightIntensity = 0.22f;
+
+    [MenuItem("Maestro Zoo/Apply Rokid View And Low Light")]
+    public static void ApplyRokidViewAndLowLight()
+    {
+        ApplySingleRokidCamera();
+        ApplyLowStageLighting();
+        EditorSceneManager.MarkSceneDirty(EditorSceneManager.GetActiveScene());
+        EditorSceneManager.SaveOpenScenes();
+        Debug.Log("[Maestro] Applied Rokid single-camera +X view and low stage lighting.");
+    }
 
     [MenuItem("Maestro Zoo/Create Latency Presets")]
     private static void CreateLatencyPresets()
@@ -78,22 +93,23 @@ public static class MaestroSceneBuilder
         var camGo = new GameObject("Main Camera");
         camGo.tag = "MainCamera";
         var cam = camGo.AddComponent<Camera>();
-        cam.clearFlags = CameraClearFlags.Skybox;
+        cam.clearFlags = CameraClearFlags.SolidColor;
+        cam.backgroundColor = RokidCameraBackground;
         cam.fieldOfView = 52f;
         cam.nearClipPlane = 0.03f;
-        cam.transform.position = new Vector3(6.2f, 2.25f, 0f);
-        cam.transform.LookAt(new Vector3(0f, 1.15f, 0f));
+        cam.transform.position = RokidCameraPosition;
+        cam.transform.LookAt(RokidCameraLookAt);
 
         // ═══ LIGHT ═══
         var lightGo = new GameObject("Directional Light");
         var dl = lightGo.AddComponent<Light>();
         dl.type = LightType.Directional;
-        dl.intensity = 0.85f;
+        dl.intensity = RokidDirectionalLightIntensity;
         dl.shadows = LightShadows.Soft;
-        dl.color = new Color(1f, 0.96f, 0.88f);
+        dl.color = new Color(1f, 0.94f, 0.82f);
         lightGo.transform.rotation = Quaternion.Euler(48f, 110f, 8f);
         RenderSettings.ambientMode = UnityEngine.Rendering.AmbientMode.Flat;
-        RenderSettings.ambientLight = new Color(0.18f, 0.2f, 0.23f);
+        RenderSettings.ambientLight = RokidAmbientLight;
 
         // ═══ FOREST STAGE ═══
         var stageGo = new GameObject("Stage");
@@ -301,6 +317,71 @@ public static class MaestroSceneBuilder
         EditorSceneManager.SaveScene(scene, ScenePath);
         Debug.Log("[Maestro] Scene built: " + ScenePath);
         EditorSceneManager.OpenScene(ScenePath);
+    }
+
+    private static void ApplySingleRokidCamera()
+    {
+        var cameras = Object.FindObjectsOfType<Camera>(true);
+        Camera mainCamera = null;
+
+        foreach (var camera in cameras)
+        {
+            if (mainCamera == null)
+            {
+                mainCamera = camera;
+                continue;
+            }
+
+            Object.DestroyImmediate(camera.gameObject);
+        }
+
+        if (mainCamera == null)
+        {
+            var cameraGo = new GameObject("Main Camera");
+            mainCamera = cameraGo.AddComponent<Camera>();
+        }
+
+        mainCamera.name = "Main Camera";
+        mainCamera.tag = "MainCamera";
+        mainCamera.clearFlags = CameraClearFlags.SolidColor;
+        mainCamera.backgroundColor = RokidCameraBackground;
+        mainCamera.fieldOfView = 52f;
+        mainCamera.nearClipPlane = 0.03f;
+        mainCamera.transform.position = RokidCameraPosition;
+        mainCamera.transform.LookAt(RokidCameraLookAt);
+    }
+
+    private static void ApplyLowStageLighting()
+    {
+        var lights = Object.FindObjectsOfType<Light>(true);
+        Light mainLight = null;
+
+        foreach (var light in lights)
+        {
+            if (mainLight == null && light.type == LightType.Directional)
+            {
+                mainLight = light;
+                continue;
+            }
+
+            Object.DestroyImmediate(light.gameObject);
+        }
+
+        if (mainLight == null)
+        {
+            var lightGo = new GameObject("Directional Light");
+            mainLight = lightGo.AddComponent<Light>();
+        }
+
+        mainLight.name = "Directional Light";
+        mainLight.type = LightType.Directional;
+        mainLight.intensity = RokidDirectionalLightIntensity;
+        mainLight.shadows = LightShadows.Soft;
+        mainLight.color = new Color(1f, 0.94f, 0.82f);
+        mainLight.transform.rotation = Quaternion.Euler(48f, 110f, 8f);
+
+        RenderSettings.ambientMode = UnityEngine.Rendering.AmbientMode.Flat;
+        RenderSettings.ambientLight = RokidAmbientLight;
     }
 
     static GameObject BuildAnimal(Transform parent, string id, string role,
