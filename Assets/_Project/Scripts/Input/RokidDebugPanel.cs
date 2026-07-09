@@ -118,13 +118,15 @@ namespace MaestroZoo
             // --- Last Gesture ---
             string lastGes = "—";
             float lastTime = 0f;
+            float lastConf = 0f;
             if (nativeInput != null)
             {
                 lastGes = nativeInput.LastGesture.ToString();
                 lastTime = nativeInput.LastGestureTimestamp;
+                lastConf = nativeInput.LastConfidence;
             }
             DrawLine(panelX, ref panelY, lineHeight, "Last Gesture",
-                lastTime > 0f ? $"{lastGes} @ {lastTime:F2}s" : "(none)",
+                lastTime > 0f ? $"{lastGes} @ {lastTime:F2}s (conf:{lastConf:F2})" : "(none)",
                 Color.cyan);
 
             // --- Calibration ---

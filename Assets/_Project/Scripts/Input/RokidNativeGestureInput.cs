@@ -21,6 +21,15 @@ namespace MaestroZoo
         public bool usePinchForExpandClose = true;
         public float pinchThreshold = 0.02f;
 
+        [Header("Confidence")]
+        [Tooltip("手势位移主方向/次方向比值低于此值则丢弃。降低 = 更宽松。")]
+        [Range(0.3f, 2.0f)]
+        public float minConfidence = 0.8f;
+
+        [Header("Preset")]
+        [Tooltip("可选：拖入 GestureThresholdPreset，Start 时自动应用。")]
+        public GestureThresholdPreset preset;
+
         public bool IsTrackingAvailable { get; private set; }
         public event Action<MaestroZoo.GestureType, float> GestureCaptured;
 
@@ -76,8 +85,15 @@ namespace MaestroZoo
             GesEventInput.OnTrackedFailed -= HandleTrackedFailed;
         }
 
+        public float LastConfidence { get; private set; }
+
         private void Start()
         {
+            if (preset != null)
+            {
+                preset.ApplyTo(this);
+            }
+
             if (GesEventInput.Instance == null)
             {
                 Debug.LogWarning("[RokidNative] GesEventInput is not initialized. Rokid hand tracking will not produce gameplay input until the Rokid gesture service is available.");
@@ -140,9 +156,10 @@ namespace MaestroZoo
                 return;
             }
 
-            MaestroZoo.GestureType? detected = tracker.Detect(moveThreshold, axisDominance);
+            MaestroZoo.GestureType? detected = tracker.Detect(moveThreshold, axisDominance, minConfidence, out float conf);
             if (detected.HasValue && TryBufferGesture(detected.Value))
             {
+                LastConfidence = conf;
                 tracker.ResetWindow();
             }
         }
@@ -329,8 +346,10 @@ namespace MaestroZoo
                 firstTime = Time.time;
             }
 
-            public MaestroZoo.GestureType? Detect(float threshold, float dominance)
+            public MaestroZoo.GestureType? Detect(float threshold, float dominance, float minConf, out float confidence)
             {
+                confidence = 0f;
+
                 if (!firstPosition.HasValue || !CurrentPosition.HasValue)
                 {
                     return null;
@@ -341,6 +360,15 @@ namespace MaestroZoo
                 float absY = Mathf.Abs(delta.y);
 
                 if (absX < threshold && absY < threshold)
+                {
+                    return null;
+                }
+
+                float maxAxis = Mathf.Max(absX, absY);
+                float minAxis = Mathf.Min(absX, absY);
+                confidence = maxAxis > 0.001f ? 1f - (minAxis / maxAxis) : 0f;
+
+                if (confidence < minConf)
                 {
                     return null;
                 }
