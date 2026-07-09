@@ -18,17 +18,21 @@ public static class MaestroSceneBuilder
         camGo.tag = "MainCamera";
         var cam = camGo.AddComponent<Camera>();
         cam.clearFlags = CameraClearFlags.Skybox;
-        cam.transform.position = new Vector3(0f, 3.5f, -6f);
-        cam.transform.LookAt(new Vector3(0f, 1.2f, 0f));
+        cam.fieldOfView = 52f;
+        cam.nearClipPlane = 0.03f;
+        cam.transform.position = new Vector3(6.2f, 2.25f, 0f);
+        cam.transform.LookAt(new Vector3(0f, 1.15f, 0f));
 
         // ═══ LIGHT ═══
         var lightGo = new GameObject("Directional Light");
         var dl = lightGo.AddComponent<Light>();
         dl.type = LightType.Directional;
-        dl.intensity = 1.5f;
+        dl.intensity = 2.35f;
         dl.shadows = LightShadows.Soft;
-        dl.color = new Color(1f, 0.95f, 0.82f);
-        lightGo.transform.rotation = Quaternion.Euler(55f, -25f, 0f);
+        dl.color = new Color(1f, 0.96f, 0.88f);
+        lightGo.transform.rotation = Quaternion.Euler(48f, 110f, 8f);
+        RenderSettings.ambientMode = UnityEngine.Rendering.AmbientMode.Flat;
+        RenderSettings.ambientLight = new Color(0.52f, 0.56f, 0.62f);
 
         // ═══ FOREST STAGE ═══
         var stageGo = new GameObject("Stage");
@@ -39,17 +43,17 @@ public static class MaestroSceneBuilder
             var forest = (GameObject)PrefabUtility.InstantiatePrefab(forestPrefab);
             forest.name = "Forest_House";
             forest.transform.SetParent(stageGo.transform);
-            forest.transform.localPosition = new Vector3(0f, -0.1f, 3.5f);
+            forest.transform.localPosition = new Vector3(-1.1f, -0.1f, 0f);
             forest.transform.localScale = Vector3.one * 1.0f;
-            forest.transform.localRotation = Quaternion.Euler(0f, 180f, 0f);
+            forest.transform.localRotation = Quaternion.Euler(0f, 90f, 0f);
         }
         else
         {
             var platform = GameObject.CreatePrimitive(PrimitiveType.Cube);
             platform.name = "Stage_Platform";
             platform.transform.SetParent(stageGo.transform);
-            platform.transform.localPosition = new Vector3(0f, -0.3f, 2f);
-            platform.transform.localScale = new Vector3(8f, 0.1f, 4f);
+            platform.transform.localPosition = new Vector3(-0.8f, -0.3f, 0f);
+            platform.transform.localScale = new Vector3(4f, 0.1f, 8f);
         }
 
         // ═══ GAME DIRECTOR ═══
@@ -64,6 +68,10 @@ public static class MaestroSceneBuilder
         var noteSpawner = directorGo.AddComponent<NoteSpawner>();
         noteSpawner.chartPlayer = chartPlayer;
         noteSpawner.spawnRoot = directorGo.transform;
+        noteSpawner.useXForwardLayout = true;
+        noteSpawner.laneSpacing = 1.15f;
+        noteSpawner.judgeX = 0.35f;
+        noteSpawner.spawnX = -3.2f;
         noteSpawner.judgeZ = 0f;
         noteSpawner.spawnZ = 8f;
 
@@ -153,7 +161,7 @@ public static class MaestroSceneBuilder
 
         string[] ids   = { "RabbitDrum",   "FoxViolin",    "BearCello",    "BirdFlute",    "ElephantHorn" };
         string[] roles = { "Drummer",      "Violinist",    "Cellist",      "Flutist",      "Pianist" };
-        Vector3[] pos  = { new(-2.3f,1f,0.8f), new(-1.15f,1f,0.3f), new(0f,1.1f,0.9f), new(1.15f,1.3f,0.1f), new(2.3f,1.2f,0.8f) };
+        Vector3[] pos  = { new(-0.25f,1f,-2.8f), new(-0.25f,1f,-1.4f), new(-0.25f,1.05f,0f), new(-0.25f,1.15f,1.4f), new(-0.25f,1.08f,2.8f) };
         Color[] colors = { new(1f,0.62f,0.75f), new(1f,0.48f,0.18f), new(0.52f,0.33f,0.18f), new(0.35f,0.6f,1f), new(0.48f,0.52f,0.7f) };
 
         string[] instruments =

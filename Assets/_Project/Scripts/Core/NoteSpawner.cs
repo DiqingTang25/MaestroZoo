@@ -14,6 +14,9 @@ namespace MaestroZoo
         public float laneSpacing = 1.2f;
         public float spawnZ = 8f;
         public float judgeZ = 0f;
+        public bool useXForwardLayout;
+        public float spawnX = -3.2f;
+        public float judgeX = 0.35f;
         public float y = 1.2f;
 
         private readonly List<FlyingNote> activeNotes = new List<FlyingNote>();
@@ -120,8 +123,12 @@ namespace MaestroZoo
 
         private void Spawn(ChartNote note, float leadTime)
         {
-            Vector3 spawn = new Vector3(note.lane * laneSpacing, y, spawnZ);
-            Vector3 target = new Vector3(note.lane * laneSpacing, y, judgeZ);
+            Vector3 spawn = useXForwardLayout
+                ? new Vector3(spawnX, y, note.lane * laneSpacing)
+                : new Vector3(note.lane * laneSpacing, y, spawnZ);
+            Vector3 target = useXForwardLayout
+                ? new Vector3(judgeX, y, note.lane * laneSpacing)
+                : new Vector3(note.lane * laneSpacing, y, judgeZ);
 
             Transform parent = spawnRoot != null ? spawnRoot : transform;
             FlyingNote instance = Instantiate(notePrefab, parent);
