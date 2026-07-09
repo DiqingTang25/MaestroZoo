@@ -150,6 +150,21 @@ namespace MaestroZoo
             StartSong();
         }
 
+        /// <summary>Start playback with a runtime-constructed chart (used by tutorial system).</summary>
+        public void StartSong(ChartData chartData)
+        {
+            if (chartData == null)
+            {
+                Debug.LogWarning("[ChartPlayer] Cannot start: null ChartData.");
+                return;
+            }
+
+            Chart = chartData;
+            ChartEndTime = Chart.GetEndTime();
+            ChartLoaded?.Invoke(Chart);
+            StartSong();
+        }
+
         public void StopSong()
         {
             IsPlaying = false;

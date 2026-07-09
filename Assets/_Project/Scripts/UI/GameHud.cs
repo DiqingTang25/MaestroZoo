@@ -22,6 +22,11 @@ namespace MaestroZoo
         public Slider moodBar;
         public Image feverGlow;
 
+        [Header("Tutorial")]
+        public GameObject tutorialPanel;
+        public Text tutorialInstructionText;
+        public Text tutorialFeedbackText;
+
         [Header("Results")]
         public GameObject resultsPanel;
         public Text resultsTitleText;
@@ -29,6 +34,7 @@ namespace MaestroZoo
         public Text resultsStatsText;
 
         private float judgeFlashTimer;
+        private float tutorialFeedbackFlashTimer;
 
         public void SetScore(int score)
         {
@@ -95,6 +101,29 @@ namespace MaestroZoo
             if (resultsPanel != null) resultsPanel.SetActive(visible);
         }
 
+        public void ShowTutorialInstruction(string text)
+        {
+            if (tutorialPanel != null)
+                tutorialPanel.SetActive(true);
+            if (tutorialInstructionText != null)
+                tutorialInstructionText.text = text;
+        }
+
+        public void ShowTutorialFeedback(string text)
+        {
+            if (tutorialFeedbackText != null)
+            {
+                tutorialFeedbackText.text = text;
+                tutorialFeedbackFlashTimer = 3f;
+            }
+        }
+
+        public void HideTutorial()
+        {
+            if (tutorialPanel != null)
+                tutorialPanel.SetActive(false);
+        }
+
         public void ShowResults(JudgeManager judgeManager, string title)
         {
             if (judgeManager == null) return;
@@ -130,6 +159,15 @@ namespace MaestroZoo
                 if (judgeFlashTimer <= 0f && judgeText != null)
                 {
                     judgeText.text = "";
+                }
+            }
+
+            if (tutorialFeedbackFlashTimer > 0f)
+            {
+                tutorialFeedbackFlashTimer -= Time.deltaTime;
+                if (tutorialFeedbackFlashTimer <= 0f && tutorialFeedbackText != null)
+                {
+                    tutorialFeedbackText.text = "";
                 }
             }
         }

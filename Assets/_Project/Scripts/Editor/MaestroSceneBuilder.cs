@@ -130,6 +130,11 @@ public static class MaestroSceneBuilder
         sfx.judgeManager = judge;
         sfx.gestureInput = inputDispatcher;
 
+        // --- Owl Tutorial System ---
+        var owlTutorial = directorGo.AddComponent<OwlTutorialController>();
+        owlTutorial.gameDirector = director;
+        owlTutorial.judgeManager = judge;
+
         // ═══ NOTE TEMPLATE ═══
         var noteRoot = new GameObject("FlyingNote");
         noteRoot.transform.SetParent(directorGo.transform);
@@ -387,6 +392,11 @@ public static class MaestroSceneBuilder
         var conn = connGo.AddComponent<HudConnector>();
         conn.gameHud = hud; conn.gameDirector = director;
         conn.judgeManager = judge; conn.orchestra = orchestra;
+
+        // Wire Owl Tutorial to HUD (created earlier but needs GameHud reference)
+        var owlTutorial = directorGo.GetComponent<OwlTutorialController>();
+        if (owlTutorial != null)
+            owlTutorial.gameHud = hud;
 
         var feedback = canvasGo.AddComponent<GestureFeedbackDisplay>();
         feedback.gestureInput = director.gestureInput;
