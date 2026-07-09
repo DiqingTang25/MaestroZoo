@@ -491,7 +491,7 @@ public static class MaestroSceneBuilder
         conn.judgeManager = judge; conn.orchestra = orchestra;
 
         // Wire Owl Tutorial to HUD (created earlier but needs GameHud reference)
-        var owlTutorial = directorGo.GetComponent<OwlTutorialController>();
+        var owlTutorial = parent.GetComponent<OwlTutorialController>();
         if (owlTutorial != null)
             owlTutorial.gameHud = hud;
 

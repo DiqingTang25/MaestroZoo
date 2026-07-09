@@ -57,6 +57,7 @@ namespace MaestroZoo
             {
                 DrawLine(x, ref y, lineHeight, "Time",
                     $"{chartPlayer.CompensatedSongTime:F2}s / {chartPlayer.ChartEndTime:F2}s  raw:{chartPlayer.SongTime:F2}s");
+                DrawLine(x, ref y, lineHeight, "BPM / Pause", $"{chartPlayer.CurrentBpm:F0} bpm  paused:{chartPlayer.IsPaused}");
                 DrawLine(x, ref y, lineHeight, "Latency", $"{chartPlayer.latencyOffset * 1000f:F0} ms");
             }
 
