@@ -9,6 +9,39 @@ public static class MaestroSceneBuilder
     private const string ScenePath = "Assets/_Project/Scenes/Main.unity";
     private const string DifficultyAssetDir = "Assets/_Project/Resources/Difficulty";
 
+    [MenuItem("Maestro Zoo/Create Latency Presets")]
+    private static void CreateLatencyPresets()
+    {
+        string dir = "Assets/_Project/Resources/Latency";
+        if (!AssetDatabase.IsValidFolder(dir))
+            AssetDatabase.CreateFolder("Assets/_Project/Resources", "Latency");
+
+        var presets = new (string name, float ms, string desc)[]
+        {
+            ("Rokid Wired",    0.03f, "Rokid AR glasses with wired headphones"),
+            ("Rokid Speaker",  0.05f, "Rokid built-in speakers"),
+            ("Bluetooth HQ",   0.12f, "High-quality Bluetooth headphones (aptX Low Latency)"),
+            ("Bluetooth Std",  0.18f, "Standard Bluetooth audio (SBC/AAC)"),
+            ("Quest 3 Wired",  0.03f, "Meta Quest 3 with USB-C audio"),
+            ("Quest 3 Speaker", 0.04f, "Meta Quest 3 built-in speakers"),
+            ("Custom Measured", 0f, "Use auto-calibration to measure")
+        };
+
+        foreach (var (name, ms, desc) in presets)
+        {
+            string path = $"{dir}/Latency_{name.Replace(" ", "_")}.asset";
+            if (AssetDatabase.LoadAssetAtPath<LatencyPreset>(path) != null) continue;
+
+            LatencyPreset preset = LatencyPreset.Create(name, ms, desc);
+            preset.name = $"Latency_{name.Replace(" ", "_")}";
+            AssetDatabase.CreateAsset(preset, path);
+            Debug.Log($"[Maestro] Created: {path}");
+        }
+
+        AssetDatabase.SaveAssets();
+        AssetDatabase.Refresh();
+    }
+
     [MenuItem("Maestro Zoo/Create Difficulty Profiles")]
     private static void CreateDifficultyProfiles()
     {
@@ -375,6 +408,23 @@ public static class MaestroSceneBuilder
         hud.maxComboText = Txt("MaxCombo", canvasGo.transform, 80, -80,  0, 1,        18, TextAnchor.MiddleLeft);
         hud.judgeText    = Txt("Judgment", canvasGo.transform, 0,  -250, 0.5f, 0.5f, 38, TextAnchor.MiddleCenter);
         hud.maxComboText.color = new Color(1, 1, 1, 0.45f);
+
+        var tutorialPanel = new GameObject("TutorialPanel");
+        tutorialPanel.transform.SetParent(canvasGo.transform);
+        var tutorialRt = tutorialPanel.AddComponent<RectTransform>();
+        tutorialRt.anchorMin = tutorialRt.anchorMax = new Vector2(0.5f, 1f);
+        tutorialRt.anchoredPosition = new Vector2(0f, -145f);
+        tutorialRt.sizeDelta = new Vector2(980f, 170f);
+        var tutorialImage = tutorialPanel.AddComponent<Image>();
+        tutorialImage.color = new Color(0.02f, 0.025f, 0.03f, 0.68f);
+
+        hud.tutorialPanel = tutorialPanel;
+        hud.tutorialInstructionText = Txt("TutorialInstruction", tutorialPanel.transform, 0, 35, 0.5f, 0.5f, 30, TextAnchor.MiddleCenter);
+        hud.tutorialInstructionText.rectTransform.sizeDelta = new Vector2(900f, 95f);
+        hud.tutorialFeedbackText = Txt("TutorialFeedback", tutorialPanel.transform, 0, -48, 0.5f, 0.5f, 28, TextAnchor.MiddleCenter);
+        hud.tutorialFeedbackText.rectTransform.sizeDelta = new Vector2(900f, 70f);
+        hud.tutorialFeedbackText.color = new Color(1f, 0.82f, 0.18f);
+        hud.HideTutorial();
 
         var resultsPanel = new GameObject("ResultsPanel");
         resultsPanel.transform.SetParent(canvasGo.transform);
