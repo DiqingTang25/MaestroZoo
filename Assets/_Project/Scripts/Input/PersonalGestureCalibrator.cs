@@ -104,7 +104,7 @@ namespace MaestroZoo
         public void Cancel()
         {
             GoToStep(Step.Idle);
-            pendingResult = null;
+            pendingResult = default;
         }
 
         private void Update()
