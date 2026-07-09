@@ -16,6 +16,7 @@ public static class MaestroBuildPipeline
             BuildTargetGroup.Android,
             BuildTarget.Android);
         EditorUserBuildSettings.buildAppBundle = false;
+        RokidXRBuildConfigurator.Configure();
 
         PlayerSettings.SetApplicationIdentifier(
             BuildTargetGroup.Android,

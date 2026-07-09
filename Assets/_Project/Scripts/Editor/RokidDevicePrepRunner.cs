@@ -54,7 +54,10 @@ public static class RokidDevicePrepRunner
             WriteLog("4/5 Switch Platform: Android");
             EditorUserBuildSettings.SwitchActiveBuildTarget(BuildTargetGroup.Android, BuildTarget.Android);
 
-            WriteLog("5/5 Build Android APK");
+            WriteLog("5/6 Configure Rokid XR Build");
+            RokidXRBuildConfigurator.Configure();
+
+            WriteLog("6/6 Build Android APK");
             MaestroBuildPipeline.BuildAndroidApk();
 
             WriteLog("DONE: Builds/Android/MaestroZoo-Rokid-Demo.apk");
