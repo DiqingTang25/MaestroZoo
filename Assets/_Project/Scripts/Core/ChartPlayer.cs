@@ -34,6 +34,13 @@ namespace MaestroZoo
         public float CompensatedSongTime => Mathf.Max(0f, SongTime - latencyOffset);
 
         public bool IsPlaying { get; private set; }
+
+        /// <summary>True when playback is paused (not stopped — can resume).</summary>
+        public bool IsPaused { get; private set; }
+
+        /// <summary>Current BPM at the current song position, accounting for tempo changes.</summary>
+        public int CurrentBpm => Chart != null ? Chart.GetBpmAtTime(SongTime) : 120;
+
         public float ChartEndTime { get; private set; }
 
         /// <summary>True if latency calibration has been completed this session.</summary>
@@ -42,9 +49,13 @@ namespace MaestroZoo
         public event Action<ChartData> ChartLoaded;
         public event Action PlaybackStarted;
         public event Action PlaybackStopped;
+        public event Action PlaybackPaused;
+        public event Action PlaybackResumed;
         public event Action PlaybackEnded;
 
         private float startDspTime;
+        private float pauseDspTime;   // DSP time when paused (for resuming)
+        private float pauseOffset;     // Accumulated pause duration
         private bool endRaised;
 
         private void Awake()
@@ -59,12 +70,14 @@ namespace MaestroZoo
         {
             UpdateCalibration();
 
-            if (!IsPlaying)
+            if (!IsPlaying || IsPaused)
             {
                 return;
             }
 
-            SongTime = (float)(AudioSettings.dspTime - startDspTime);
+            // SongTime accounts for pause gaps: total DSP elapsed minus accumulated pause duration
+            float elapsed = (float)(AudioSettings.dspTime - startDspTime);
+            SongTime = Mathf.Max(0f, elapsed - pauseOffset);
 
             if (!endRaised && Chart != null && SongTime >= ChartEndTime + 1f)
             {
@@ -140,8 +153,11 @@ namespace MaestroZoo
         public void StopSong()
         {
             IsPlaying = false;
+            IsPaused = false;
             SongTime = 0f;
             endRaised = false;
+            pauseOffset = 0f;
+            pauseDspTime = 0f;
 
             if (musicSource != null)
             {
@@ -149,6 +165,43 @@ namespace MaestroZoo
             }
 
             PlaybackStopped?.Invoke();
+        }
+
+        /// <summary>Pause playback. Audio stops, song time freezes. Can Resume later.</summary>
+        public void PauseSong()
+        {
+            if (!IsPlaying || IsPaused) return;
+
+            IsPaused = true;
+            pauseDspTime = (float)AudioSettings.dspTime;
+
+            if (musicSource != null)
+            {
+                musicSource.Pause();
+            }
+
+            Debug.Log($"[ChartPlayer] Paused at SongTime={SongTime:F2}s");
+            PlaybackPaused?.Invoke();
+        }
+
+        /// <summary>Resume playback from where it was paused.</summary>
+        public void ResumeSong()
+        {
+            if (!IsPlaying || !IsPaused) return;
+
+            // Accumulate the pause duration so SongTime doesn't jump forward
+            float pauseDuration = (float)(AudioSettings.dspTime - pauseDspTime);
+            pauseOffset += pauseDuration;
+
+            IsPaused = false;
+
+            if (musicSource != null)
+            {
+                musicSource.UnPause();
+            }
+
+            Debug.Log($"[ChartPlayer] Resumed at SongTime={SongTime:F2}s (pause was {pauseDuration * 1000f:F0}ms)");
+            PlaybackResumed?.Invoke();
         }
 
         private AudioClip CreatePlaceholderClip()

@@ -40,10 +40,17 @@ namespace MaestroZoo
         public event Action<int> ScoreChanged;
         public event Action<int> ComboChanged;
         public event Action<GestureType> WrongGesture;
+        public event Action<FlyingNote, float> SustainedHoldStarted; // note, holdStartTime
+        public event Action<FlyingNote, float> SustainedHoldReleased; // note, holdDuration
         public event Action JudgementReset;
 
         private IGestureInput input;
         private ChartPlayer subscribedPlayer;
+
+        // Sustained/long-press tracking
+        private FlyingNote activeSustainedNote;
+        private GestureType sustainedGesture;
+        private float sustainedHoldStartTime;
 
         private void Reset()
         {
@@ -68,7 +75,7 @@ namespace MaestroZoo
 
             // Only judge gestures when chart is actively playing.
             // Gestures before playback start or after end are ignored.
-            if (chartPlayer.IsPlaying && chartPlayer.Chart != null)
+            if (chartPlayer.IsPlaying && !chartPlayer.IsPaused && chartPlayer.Chart != null)
             {
                 while (input.TryConsumeGesture(out GestureType gesture, out _))
                 {
@@ -76,6 +83,7 @@ namespace MaestroZoo
                 }
 
                 JudgeExpiredNotes();
+                UpdateSustainedHold();
             }
         }
 
@@ -116,6 +124,8 @@ namespace MaestroZoo
             GoodCount = 0;
             MissCount = 0;
             WrongGestureCount = 0;
+            activeSustainedNote = null;
+            sustainedHoldStartTime = 0f;
             JudgementReset?.Invoke();
             ScoreChanged?.Invoke(Score);
             ComboChanged?.Invoke(Combo);
@@ -123,6 +133,12 @@ namespace MaestroZoo
 
         private void JudgeGesture(GestureType gesture)
         {
+            // If currently holding a sustained note, a new gesture breaks the hold
+            if (activeSustainedNote != null && gesture != sustainedGesture)
+            {
+                ReleaseSustainedHold(false);
+            }
+
             FlyingNote best = null;
             float bestAbsOffset = float.MaxValue;
 
@@ -147,8 +163,68 @@ namespace MaestroZoo
                 return;
             }
 
+            // Sustained/long-press note: start hold tracking instead of immediate judgment
+            if (best.Note.IsSustained)
+            {
+                StartSustainedHold(best, gesture);
+                return;
+            }
+
             JudgeResult result = bestAbsOffset <= perfectWindow ? JudgeResult.Perfect : JudgeResult.Good;
             ApplyResult(best, result);
+        }
+
+        private void StartSustainedHold(FlyingNote note, GestureType gesture)
+        {
+            activeSustainedNote = note;
+            sustainedGesture = gesture;
+            sustainedHoldStartTime = chartPlayer.CompensatedSongTime;
+            SustainedHoldStarted?.Invoke(note, sustainedHoldStartTime);
+        }
+
+        private void ReleaseSustainedHold(bool completed)
+        {
+            if (activeSustainedNote == null) return;
+
+            float holdDuration = chartPlayer.CompensatedSongTime - sustainedHoldStartTime;
+            SustainedHoldReleased?.Invoke(activeSustainedNote, holdDuration);
+
+            if (completed)
+            {
+                // Held for the full duration → Perfect
+                ApplyResult(activeSustainedNote, JudgeResult.Perfect);
+            }
+            else
+            {
+                // Released early → Good (partial credit)
+                ApplyResult(activeSustainedNote, JudgeResult.Good);
+            }
+
+            activeSustainedNote = null;
+        }
+
+        /// <summary>
+        /// Called each frame to check if sustained hold has been maintained long enough.
+        /// Auto-completes when hold duration >= note.duration.
+        /// </summary>
+        private void UpdateSustainedHold()
+        {
+            if (activeSustainedNote == null) return;
+
+            // Check if note expired (should not happen if hold is active, but guard)
+            if (chartPlayer.CompensatedSongTime > activeSustainedNote.Note.time + missWindow + activeSustainedNote.Note.duration)
+            {
+                // Expired despite hold — still give Good
+                ReleaseSustainedHold(true);
+                return;
+            }
+
+            // Auto-complete when hold >= required duration
+            float holdDuration = chartPlayer.CompensatedSongTime - sustainedHoldStartTime;
+            if (holdDuration >= activeSustainedNote.Note.duration)
+            {
+                ReleaseSustainedHold(true);
+            }
         }
 
         private void JudgeExpiredNotes()

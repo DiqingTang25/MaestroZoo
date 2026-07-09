@@ -110,6 +110,7 @@ namespace MaestroZoo
             }
 
             ValidateMetadata(chart, warnings, errors);
+            ValidateTempoChanges(chart, warnings, errors);
             ValidateNotes(chart, warnings, errors);
             ValidateLengthAndDensity(chart, warnings);
 
@@ -159,6 +160,39 @@ namespace MaestroZoo
             }
         }
 
+        private static void ValidateTempoChanges(ChartData chart, List<string> warnings, List<string> errors)
+        {
+            if (chart.tempoChanges == null || chart.tempoChanges.Length == 0)
+                return;
+
+            float lastTime = -1f;
+            for (int i = 0; i < chart.tempoChanges.Length; i++)
+            {
+                TempoChange tc = chart.tempoChanges[i];
+                if (tc == null)
+                {
+                    errors.Add($"tempoChanges[{i}] is null.");
+                    continue;
+                }
+
+                string prefix = $"TempoChange[{i}] (t={tc.time}s)";
+
+                if (tc.time < 0f)
+                    errors.Add($"{prefix} time is negative.");
+
+                if (tc.time < lastTime)
+                    errors.Add($"{prefix} time={tc.time} is before previous tempo change ({lastTime}). Must be sorted by time.");
+
+                if (tc.bpm <= 0 || tc.bpm > 300)
+                    errors.Add($"{prefix} BPM={tc.bpm} is outside the expected range (1-300).");
+
+                lastTime = tc.time;
+            }
+
+            if (chart.tempoChanges.Length > 50)
+                warnings.Add($"Chart has {chart.tempoChanges.Length} tempo changes — unusual.");
+        }
+
         private static void ValidateNotes(ChartData chart, List<string> warnings, List<string> errors)
         {
             if (chart.notes == null || chart.notes.Length == 0)
@@ -202,6 +236,13 @@ namespace MaestroZoo
                 {
                     errors.Add($"{prefix} gesture='{note.gesture}' is invalid. Valid gestures: {string.Join(", ", ValidGestures)}");
                 }
+
+                if (note.duration < 0f)
+                    errors.Add($"{prefix} duration={note.duration} is negative.");
+                if (note.duration > 12f)
+                    warnings.Add($"{prefix} duration={note.duration}s is very long — unusual for a sustained note.");
+                if (note.duration > 0f && note.time + note.duration > chart.GetEndTime() + 2f)
+                    warnings.Add($"{prefix} sustained note extends beyond chart end.");
 
                 lastTime = note.time;
             }
