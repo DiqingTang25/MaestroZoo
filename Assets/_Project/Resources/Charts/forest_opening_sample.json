@@ -1,0 +1,16 @@
+{
+  "songName": "Forest Opening",
+  "bpm": 120,
+  "difficulty": "Prototype",
+  "leadTime": 2.0,
+  "notes": [
+    { "time": 2.0, "gesture": "Down", "lane": 0, "animal": "RabbitDrum" },
+    { "time": 3.0, "gesture": "Up", "lane": 1, "animal": "BirdFlute" },
+    { "time": 4.0, "gesture": "Left", "lane": -1, "animal": "FoxViolin" },
+    { "time": 5.0, "gesture": "Right", "lane": 1, "animal": "BearCello" },
+    { "time": 6.0, "gesture": "Down", "lane": 0, "animal": "RabbitDrum" },
+    { "time": 7.0, "gesture": "Up", "lane": 1, "animal": "BirdFlute" },
+    { "time": 8.0, "gesture": "Expand", "lane": 0, "animal": "FullOrchestra" },
+    { "time": 9.0, "gesture": "Close", "lane": 0, "animal": "FullOrchestra" }
+  ]
+}

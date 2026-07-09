@@ -1,0 +1,19 @@
+{
+  "songName": "Tutorial: First Conducting",
+  "bpm": 96,
+  "difficulty": "Tutorial",
+  "leadTime": 2.0,
+  "notes": [
+    { "time": 2.0, "gesture": "Down", "lane": 0, "animal": "RabbitDrum" },
+    { "time": 3.5, "gesture": "Down", "lane": 0, "animal": "RabbitDrum" },
+    { "time": 5.0, "gesture": "Up", "lane": 1, "animal": "BirdFlute" },
+    { "time": 6.5, "gesture": "Up", "lane": 1, "animal": "BirdFlute" },
+    { "time": 8.0, "gesture": "Left", "lane": -1, "animal": "FoxViolin" },
+    { "time": 9.5, "gesture": "Right", "lane": 1, "animal": "BearCello" },
+    { "time": 11.0, "gesture": "Left", "lane": -1, "animal": "FoxViolin" },
+    { "time": 12.5, "gesture": "Right", "lane": 1, "animal": "BearCello" },
+    { "time": 14.0, "gesture": "Expand", "lane": 0, "animal": "FullOrchestra" },
+    { "time": 16.0, "gesture": "Close", "lane": 0, "animal": "FullOrchestra" }
+  ]
+}
+

@@ -1,0 +1,25 @@
+{
+  "songName": "Party Quick Round",
+  "bpm": 132,
+  "difficulty": "Party",
+  "leadTime": 1.6,
+  "notes": [
+    { "time": 1.6, "gesture": "Down", "lane": 0, "animal": "RabbitDrum" },
+    { "time": 2.2, "gesture": "Up", "lane": 1, "animal": "BirdFlute" },
+    { "time": 2.8, "gesture": "Left", "lane": -1, "animal": "FoxViolin" },
+    { "time": 3.4, "gesture": "Right", "lane": 1, "animal": "BearCello" },
+    { "time": 4.0, "gesture": "Down", "lane": 0, "animal": "RabbitDrum" },
+    { "time": 4.6, "gesture": "Down", "lane": 0, "animal": "RabbitDrum" },
+    { "time": 5.2, "gesture": "Up", "lane": 1, "animal": "BirdFlute" },
+    { "time": 5.8, "gesture": "Expand", "lane": 0, "animal": "FullOrchestra" },
+    { "time": 7.0, "gesture": "Left", "lane": -1, "animal": "FoxViolin" },
+    { "time": 7.6, "gesture": "Right", "lane": 1, "animal": "BearCello" },
+    { "time": 8.2, "gesture": "Left", "lane": -1, "animal": "FoxViolin" },
+    { "time": 8.8, "gesture": "Right", "lane": 1, "animal": "BearCello" },
+    { "time": 9.4, "gesture": "Down", "lane": 0, "animal": "RabbitDrum" },
+    { "time": 10.0, "gesture": "Up", "lane": 1, "animal": "BirdFlute" },
+    { "time": 10.6, "gesture": "Close", "lane": 0, "animal": "FullOrchestra" },
+    { "time": 12.0, "gesture": "Expand", "lane": 0, "animal": "FullOrchestra" }
+  ]
+}
+
