@@ -112,6 +112,11 @@ namespace MaestroZoo
                 judgeManager.NoteJudged += HandleNoteJudged;
                 judgeManager.WrongGesture += HandleWrongGesture;
             }
+
+            if (gameDirector?.chartPlayer != null)
+            {
+                gameDirector.chartPlayer.PlaybackEnded += HandleTutorialPlaybackEnded;
+            }
         }
 
         private void OnDisable()
@@ -120,6 +125,11 @@ namespace MaestroZoo
             {
                 judgeManager.NoteJudged -= HandleNoteJudged;
                 judgeManager.WrongGesture -= HandleWrongGesture;
+            }
+
+            if (gameDirector?.chartPlayer != null)
+            {
+                gameDirector.chartPlayer.PlaybackEnded -= HandleTutorialPlaybackEnded;
             }
         }
 
@@ -209,6 +219,32 @@ namespace MaestroZoo
             {
                 string hint = GetMistakeHint(wrongGesture, TargetGesture);
                 FeedbackChanged?.Invoke(hint);
+            }
+        }
+
+        /// <summary>
+        /// When the tutorial mini-chart ends but the step hasn't been completed,
+        /// auto-retry. If step IS complete, advance to next step.
+        /// </summary>
+        private void HandleTutorialPlaybackEnded()
+        {
+            if (!IsLearnStep(CurrentStep)) return;
+
+            if (stepCompleted)
+            {
+                // Step was already completed — advance should have been scheduled.
+                // If it fired too early and playback ended before advancing, force advance now.
+                CancelInvoke(nameof(AdvanceToNextStep));
+                AdvanceToNextStep();
+            }
+            else
+            {
+                // Player didn't hit enough notes — auto-retry
+                Debug.Log($"[OwlTeacher] Step {CurrentStep} chart ended incomplete. Auto-retrying.");
+                stepHitCount = 0;
+                stepMissCount = 0;
+                ReloadTutorialChart();
+                FeedbackChanged?.Invoke("再试一次! 注意看手势提示~\n(Try again! Watch the gesture hint~)");
             }
         }
 

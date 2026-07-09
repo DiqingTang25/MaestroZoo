@@ -180,7 +180,11 @@ namespace MaestroZoo
 
         private void HandlePlaybackEnded()
         {
-            if (Mode == MaestroGameMode.Tutorial || Mode == MaestroGameMode.Challenge || Mode == MaestroGameMode.Party)
+            // Tutorial mode is managed by OwlTutorialController — don't auto-switch to Results
+            if (Mode == MaestroGameMode.Tutorial)
+                return;
+
+            if (Mode == MaestroGameMode.Challenge || Mode == MaestroGameMode.Party)
             {
                 Mode = MaestroGameMode.Results;
             }

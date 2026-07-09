@@ -59,6 +59,11 @@ namespace MaestroZoo
         private FlyingNote activeSustainedNote;
         private GestureType sustainedGesture;
         private float sustainedHoldStartTime;
+        private float lastSustainedGestureTime;
+
+        [Header("Sustained Gesture")]
+        [Tooltip("How long after the last matching gesture before hold is considered released (seconds).")]
+        public float sustainedReleaseTimeout = 0.35f;
 
         private void Reset()
         {
@@ -149,7 +154,14 @@ namespace MaestroZoo
 
         private void JudgeGesture(GestureType gesture)
         {
-            // If currently holding a sustained note, a new gesture breaks the hold
+            // If currently holding a sustained note, same gesture refreshes the hold
+            if (activeSustainedNote != null && gesture == sustainedGesture)
+            {
+                lastSustainedGestureTime = chartPlayer.CompensatedSongTime;
+                return; // Keep holding, don't start a new match
+            }
+
+            // Different gesture breaks the current hold
             if (activeSustainedNote != null && gesture != sustainedGesture)
             {
                 ReleaseSustainedHold(false);
@@ -195,6 +207,7 @@ namespace MaestroZoo
             activeSustainedNote = note;
             sustainedGesture = gesture;
             sustainedHoldStartTime = chartPlayer.CompensatedSongTime;
+            lastSustainedGestureTime = sustainedHoldStartTime;
             SustainedHoldStarted?.Invoke(note, sustainedHoldStartTime);
         }
 
@@ -227,16 +240,26 @@ namespace MaestroZoo
         {
             if (activeSustainedNote == null) return;
 
-            // Check if note expired (should not happen if hold is active, but guard)
-            if (chartPlayer.CompensatedSongTime > activeSustainedNote.Note.time + missWindow + activeSustainedNote.Note.duration)
+            float now = chartPlayer.CompensatedSongTime;
+
+            // Timeout: player stopped producing the gesture → early release with partial credit
+            float timeSinceLastGesture = now - lastSustainedGestureTime;
+            if (timeSinceLastGesture > sustainedReleaseTimeout)
             {
-                // Expired despite hold — still give Good
+                Debug.Log($"[Judge] Sustained hold released early: {timeSinceLastGesture:F2}s since last {sustainedGesture}");
+                ReleaseSustainedHold(false);
+                return;
+            }
+
+            // Check if note expired (should not happen if hold is active, but guard)
+            if (now > activeSustainedNote.Note.time + missWindow + activeSustainedNote.Note.duration)
+            {
                 ReleaseSustainedHold(true);
                 return;
             }
 
             // Auto-complete when hold >= required duration
-            float holdDuration = chartPlayer.CompensatedSongTime - sustainedHoldStartTime;
+            float holdDuration = now - sustainedHoldStartTime;
             if (holdDuration >= activeSustainedNote.Note.duration)
             {
                 ReleaseSustainedHold(true);

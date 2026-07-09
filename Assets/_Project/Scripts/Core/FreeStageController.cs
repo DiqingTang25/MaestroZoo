@@ -234,11 +234,8 @@ namespace MaestroZoo
 
             ScoreChanged?.Invoke(Score);
 
-            // Route to orchestra for animal reactions
-            if (orchestra != null)
-            {
-                orchestra.FreeGesture(gesture);
-            }
+            // Note: MaestroGameDirector already routes gestures to orchestra.FreeGesture()
+            // in FreeStage mode. We only add scoring here — no duplicate orchestra call.
         }
 
         private void CycleSuggestion()
