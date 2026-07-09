@@ -56,6 +56,9 @@ public static class MaestroSceneBuilder
         var directorGo = new GameObject("GameDirector");
         var chartPlayer = directorGo.AddComponent<ChartPlayer>();
         var audioSource = directorGo.AddComponent<AudioSource>();
+        audioSource.volume = 0.55f;
+        audioSource.clip = AssetDatabase.LoadAssetAtPath<AudioClip>(
+            "Assets/_Project/Resources/Audio/figaro_wedding.m4a");
         chartPlayer.musicSource = audioSource;
 
         var noteSpawner = directorGo.AddComponent<NoteSpawner>();

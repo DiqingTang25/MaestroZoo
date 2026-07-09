@@ -48,6 +48,10 @@ namespace MaestroZoo
             {
                 endRaised = true;
                 IsPlaying = false;
+                if (musicSource != null)
+                {
+                    musicSource.Stop();
+                }
                 PlaybackEnded?.Invoke();
             }
         }
