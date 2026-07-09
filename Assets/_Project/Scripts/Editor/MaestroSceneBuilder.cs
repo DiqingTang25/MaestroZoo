@@ -209,6 +209,12 @@ public static class MaestroSceneBuilder
         owlTutorial.gameDirector = director;
         owlTutorial.judgeManager = judge;
 
+        // --- FreeStage Controller ---
+        var freeStage = directorGo.AddComponent<FreeStageController>();
+        freeStage.gameDirector = director;
+        freeStage.orchestra = orchestra;
+        director.freeStageController = freeStage;
+
         // ═══ NOTE TEMPLATE ═══
         var noteRoot = new GameObject("FlyingNote");
         noteRoot.transform.SetParent(directorGo.transform);

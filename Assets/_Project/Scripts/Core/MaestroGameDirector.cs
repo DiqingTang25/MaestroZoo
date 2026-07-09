@@ -9,6 +9,7 @@ namespace MaestroZoo
         public JudgeManager judgeManager;
         public GestureInputDispatcher gestureInput;
         public OrchestraController orchestra;
+        public FreeStageController freeStageController;
 
         public bool autoStartChallenge = false;
         public string challengeTitle = "Mozart - The Marriage of Figaro";
@@ -82,6 +83,11 @@ namespace MaestroZoo
             if (judgeManager != null)
             {
                 judgeManager.ResetRun();
+            }
+
+            if (freeStageController != null)
+            {
+                freeStageController.Begin();
             }
         }
 
