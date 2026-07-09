@@ -108,7 +108,7 @@ namespace MaestroZoo
             {
                 ChartNote note = chart.notes[nextNoteIndex];
                 float spawnTime = note.time - chart.leadTime;
-                if (chartPlayer.SongTime < spawnTime)
+                if (chartPlayer.CompensatedSongTime < spawnTime)
                 {
                     break;
                 }
@@ -142,7 +142,7 @@ namespace MaestroZoo
                     continue;
                 }
 
-                if (note.Judged && chartPlayer.SongTime > note.Note.time + 0.6f)
+                if (note.Judged && chartPlayer.CompensatedSongTime > note.Note.time + 0.6f)
                 {
                     activeNotes.RemoveAt(i);
                     Destroy(note.gameObject);

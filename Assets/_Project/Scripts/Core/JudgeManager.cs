@@ -133,7 +133,7 @@ namespace MaestroZoo
                     continue;
                 }
 
-                float offset = Mathf.Abs(chartPlayer.SongTime - note.Note.time);
+                float offset = Mathf.Abs(chartPlayer.CompensatedSongTime - note.Note.time);
                 if (offset < bestAbsOffset)
                 {
                     bestAbsOffset = offset;
@@ -160,7 +160,7 @@ namespace MaestroZoo
                     continue;
                 }
 
-                if (chartPlayer.SongTime > note.Note.time + missWindow)
+                if (chartPlayer.CompensatedSongTime > note.Note.time + missWindow)
                 {
                     ApplyResult(note, JudgeResult.Miss);
                 }

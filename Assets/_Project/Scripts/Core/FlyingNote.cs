@@ -49,19 +49,19 @@ namespace MaestroZoo
             }
 
             float duration = Mathf.Max(0.01f, hitSongTime - spawnSongTime);
-            float t = Mathf.InverseLerp(spawnSongTime, hitSongTime, chartPlayer.SongTime);
+            float t = Mathf.InverseLerp(spawnSongTime, hitSongTime, chartPlayer.CompensatedSongTime);
             transform.position = Vector3.LerpUnclamped(spawnPosition, targetPosition, t);
             float pulse = 1f + Mathf.Sin(Time.time * 7f) * 0.04f;
             transform.localScale = baseScale * pulse;
 
-            if (!Judged && chartPlayer.SongTime > hitSongTime + 0.35f)
+            if (!Judged && chartPlayer.CompensatedSongTime > hitSongTime + 0.35f)
             {
                 MarkJudged(JudgeResult.Miss);
             }
 
             if (Judged)
             {
-                float judgedAge = Mathf.Clamp01((chartPlayer.SongTime - hitSongTime) / 0.6f);
+                float judgedAge = Mathf.Clamp01((chartPlayer.CompensatedSongTime - hitSongTime) / 0.6f);
                 transform.localScale = Vector3.Lerp(baseScale * 1.25f, Vector3.zero, judgedAge);
             }
         }

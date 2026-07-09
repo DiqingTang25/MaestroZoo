@@ -27,7 +27,7 @@ namespace MaestroZoo
             if (gameDirector.chartPlayer != null && gameDirector.chartPlayer.IsPlaying)
             {
                 float t = gameDirector.chartPlayer.ChartEndTime > 0f
-                    ? Mathf.Clamp01(gameDirector.chartPlayer.SongTime / gameDirector.chartPlayer.ChartEndTime)
+                    ? Mathf.Clamp01(gameDirector.chartPlayer.CompensatedSongTime / gameDirector.chartPlayer.ChartEndTime)
                     : 0f;
                 gameHud.SetProgress(t);
             }
