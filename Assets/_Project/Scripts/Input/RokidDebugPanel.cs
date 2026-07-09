@@ -46,7 +46,7 @@ namespace MaestroZoo
 
             // Background box
             float boxW = 480f;
-            float boxH = lineHeight * 14f + 20f;
+            float boxH = lineHeight * 20f + 20f;
             Rect boxRect = new Rect(panelX - 8f, panelY - 8f, boxW, boxH);
             GUI.Box(boxRect, "");
             DrawBackground(boxRect);
@@ -128,6 +128,20 @@ namespace MaestroZoo
             DrawLine(panelX, ref panelY, lineHeight, "Last Gesture",
                 lastTime > 0f ? $"{lastGes} @ {lastTime:F2}s (conf:{lastConf:F2})" : "(none)",
                 Color.cyan);
+
+            // --- Gesture History (last 5) ---
+            if (nativeInput != null && nativeInput.GestureHistory.Count > 0)
+            {
+                int count = Mathf.Min(nativeInput.GestureHistory.Count, 5);
+                for (int i = 0; i < count; i++)
+                {
+                    var rec = nativeInput.GestureHistory[i];
+                    string prefix = i == 0 ? "History" : "";
+                    Color c = i == 0 ? Color.cyan : new Color(0.5f, 0.7f, 0.7f);
+                    DrawLine(panelX, ref panelY, lineHeight, prefix,
+                        $"{rec.gesture} @ {rec.time:F2}s (conf:{rec.confidence:F2})", c);
+                }
+            }
 
             // --- Calibration ---
             if (nativeInput != null)

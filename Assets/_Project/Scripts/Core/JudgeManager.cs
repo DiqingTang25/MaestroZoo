@@ -66,12 +66,17 @@ namespace MaestroZoo
                 return;
             }
 
-            while (input.TryConsumeGesture(out GestureType gesture, out _))
+            // Only judge gestures when chart is actively playing.
+            // Gestures before playback start or after end are ignored.
+            if (chartPlayer.IsPlaying && chartPlayer.Chart != null)
             {
-                JudgeGesture(gesture);
-            }
+                while (input.TryConsumeGesture(out GestureType gesture, out _))
+                {
+                    JudgeGesture(gesture);
+                }
 
-            JudgeExpiredNotes();
+                JudgeExpiredNotes();
+            }
         }
 
         private void ResolveInput()

@@ -43,6 +43,10 @@ namespace MaestroZoo
         public float TwoHandDistance { get; private set; }
         public MaestroZoo.GestureType LastGesture { get; private set; }
         public float LastGestureTimestamp { get; private set; }
+        public float LastConfidence { get; private set; }
+
+        // Gesture history ring buffer (last 8 entries for debug)
+        public readonly List<GestureRecord> GestureHistory = new(8);
 
         private readonly Queue<GestureEvent> bufferedGestures = new Queue<GestureEvent>();
         private readonly Dictionary<HandType, HandTracker> trackers = new Dictionary<HandType, HandTracker>
@@ -84,8 +88,6 @@ namespace MaestroZoo
             GesEventInput.OnTrackedSuccess -= HandleTrackedSuccess;
             GesEventInput.OnTrackedFailed -= HandleTrackedFailed;
         }
-
-        public float LastConfidence { get; private set; }
 
         private void Start()
         {
@@ -254,7 +256,25 @@ namespace MaestroZoo
             LastGesture = gesture;
             LastGestureTimestamp = inputTime;
             GestureCaptured?.Invoke(gesture, inputTime);
+
+            // Record history (ring buffer, newest first)
+            GestureHistory.Insert(0, new GestureRecord
+            {
+                gesture = gesture,
+                time = inputTime,
+                confidence = LastConfidence
+            });
+            if (GestureHistory.Count > 8)
+                GestureHistory.RemoveAt(GestureHistory.Count - 1);
+
             return true;
+        }
+
+        public struct GestureRecord
+        {
+            public MaestroZoo.GestureType gesture;
+            public float time;
+            public float confidence;
         }
 
         private bool IsAnyHandTracked()
