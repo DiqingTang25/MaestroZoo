@@ -183,7 +183,7 @@ public static class MaestroSceneBuilder
             "Assets/Models/Animals/小猫得分1.fbx",      // RabbitDrum ← Cat placeholder (Rabbit missing)
             "Assets/Models/Animals/小狐狸得分.fbx",     // FoxViolin
             "Assets/Models/Animals/小熊得分.fbx",       // BearCello
-            "Assets/Models/Animals/小鸟得分.blend",     // BirdFlute (blend, needs Blender installed)
+            "Assets/Models/Animals/小鸟得分.fbx",       // BirdFlute ✅ converted from .blend
             "Assets/Models/Animals/小象得分.fbx"        // ElephantHorn
         };
 
