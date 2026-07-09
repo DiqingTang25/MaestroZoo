@@ -11,6 +11,8 @@ namespace MaestroZoo
         public OrchestraController orchestra;
 
         public bool autoStartChallenge = false;
+        public string challengeTitle = "Mozart - The Marriage of Figaro";
+        public string challengeChartResourcePath = "Charts/figaro_wedding";
         public MaestroGameMode Mode { get; private set; } = MaestroGameMode.Title;
         public string CurrentModeTitle { get; private set; } = "Maestro Zoo";
         public string CurrentChartPath { get; private set; } = "";
@@ -42,7 +44,7 @@ namespace MaestroZoo
 
         public void StartChallenge()
         {
-            StartChartMode(MaestroGameMode.Challenge, "Forest Concert Challenge", "Charts/forest_challenge_full");
+            StartChartMode(MaestroGameMode.Challenge, challengeTitle, challengeChartResourcePath);
         }
 
         public void StartParty()

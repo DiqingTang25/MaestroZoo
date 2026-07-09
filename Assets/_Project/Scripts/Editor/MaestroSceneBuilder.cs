@@ -82,6 +82,12 @@ public static class MaestroSceneBuilder
         debugPanel.dispatcher = inputDispatcher;
         debugPanel.nativeInput = nativeInput;
         debugPanel.handInput = handInput;
+
+        var chartDebugPanel = directorGo.AddComponent<ChartDebugPanel>();
+        chartDebugPanel.chartPlayer = chartPlayer;
+        chartDebugPanel.noteSpawner = noteSpawner;
+        chartDebugPanel.judgeManager = judge;
+        chartDebugPanel.gestureInput = inputDispatcher;
         debugPanel.chartPlayer = chartPlayer;
 
         // --- Calibration Pipeline ---
@@ -103,11 +109,14 @@ public static class MaestroSceneBuilder
 
         var director = directorGo.AddComponent<MaestroGameDirector>();
         director.autoStartChallenge = true;
+        director.challengeTitle = "Mozart - The Marriage of Figaro";
+        director.challengeChartResourcePath = "Charts/figaro_wedding";
         director.chartPlayer = chartPlayer;
         director.noteSpawner = noteSpawner;
         director.judgeManager = judge;
         director.gestureInput = inputDispatcher;
         director.orchestra = orchestra;
+        chartDebugPanel.director = director;
 
         var sfx = directorGo.AddComponent<GameSfxPlayer>();
         sfx.judgeManager = judge;
