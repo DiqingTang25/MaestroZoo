@@ -82,6 +82,20 @@ public static class MaestroSceneBuilder
         debugPanel.dispatcher = inputDispatcher;
         debugPanel.nativeInput = nativeInput;
         debugPanel.handInput = handInput;
+        debugPanel.chartPlayer = chartPlayer;
+
+        // --- Calibration Pipeline ---
+        var gestureCalibrator = directorGo.AddComponent<PersonalGestureCalibrator>();
+        gestureCalibrator.gestureInput = nativeInput;
+
+        var calibrationCoordinator = directorGo.AddComponent<CalibrationCoordinator>();
+        calibrationCoordinator.chartPlayer = chartPlayer;
+        calibrationCoordinator.gestureCalibrator = gestureCalibrator;
+        calibrationCoordinator.gestureInput = inputDispatcher;
+        debugPanel.calibrationCoordinator = calibrationCoordinator;
+
+        // Load saved calibration on game start
+        calibrationCoordinator.LoadAndApply();
 
         var orchestra = directorGo.AddComponent<OrchestraController>();
         orchestra.judgeManager = judge;

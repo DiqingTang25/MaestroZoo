@@ -14,6 +14,8 @@ namespace MaestroZoo
         public GestureInputDispatcher dispatcher;
         public RokidNativeGestureInput nativeInput;
         public RokidHandGestureInput handInput;
+        public CalibrationCoordinator calibrationCoordinator;
+        public ChartPlayer chartPlayer;
 
         [Header("Display")]
         public bool showOnDevice = true;
@@ -143,12 +145,51 @@ namespace MaestroZoo
                 }
             }
 
-            // --- Calibration ---
+            // --- Device Readiness ---
             if (nativeInput != null)
             {
-                string calibLabel = nativeInput.IsCalibrating ? "RUNNING..." : "IDLE";
-                Color calibColor = nativeInput.IsCalibrating ? Color.yellow : Color.gray;
-                DrawLine(panelX, ref panelY, lineHeight, "Calibration", calibLabel, calibColor);
+                string readinessLabel = nativeInput.DeviceReadiness.ToString();
+                Color readinessColor = nativeInput.DeviceReadiness switch
+                {
+                    RokidNativeGestureInput.ReadinessState.Ready => Color.green,
+                    RokidNativeGestureInput.ReadinessState.Error_NoGesEventInput => Color.red,
+                    RokidNativeGestureInput.ReadinessState.Error_NoHandTracking => Color.yellow,
+                    _ => Color.gray
+                };
+                DrawLine(panelX, ref panelY, lineHeight, "Device Readiness", readinessLabel, readinessColor);
+                DrawLine(panelX, ref panelY, lineHeight, "  Message", nativeInput.DeviceReadinessMessage, Color.white);
+
+                // Gesture coverage
+                string coverageLabel = nativeInput.AllGesturesDetected ? "ALL 6/6" : nativeInput.DetectedGesturesReport;
+                Color coverageColor = nativeInput.AllGesturesDetected ? Color.green : Color.yellow;
+                DrawLine(panelX, ref panelY, lineHeight, "Gesture Coverage", coverageLabel, coverageColor);
+            }
+
+            // --- Calibration Status ---
+            panelY += lineHeight * 0.3f;
+            panelY = DrawHeader(panelX, panelY, lineHeight, "--- Calibration ---", Color.cyan);
+
+            if (calibrationCoordinator != null)
+            {
+                string calibMode = calibrationCoordinator.ActiveMode?.ToString() ?? "IDLE";
+                Color calibColor = calibrationCoordinator.ActiveMode != null ? Color.yellow : Color.gray;
+                DrawLine(panelX, ref panelY, lineHeight, "Calib Mode", calibMode, calibColor);
+            }
+
+            if (nativeInput != null)
+            {
+                string sdkLabel = nativeInput.IsCalibrating ? "RUNNING (SDK)" : "IDLE";
+                Color sdkColor = nativeInput.IsCalibrating ? Color.yellow : Color.gray;
+                DrawLine(panelX, ref panelY, lineHeight, "SDK Calibration", sdkLabel, sdkColor);
+            }
+
+            if (chartPlayer != null)
+            {
+                string latencyLabel = chartPlayer.LatencyCalibrated
+                    ? $"{chartPlayer.latencyOffset * 1000f:F0}ms ✓"
+                    : $"{chartPlayer.latencyOffset * 1000f:F0}ms (default)";
+                Color latencyColor = chartPlayer.LatencyCalibrated ? Color.green : Color.gray;
+                DrawLine(panelX, ref panelY, lineHeight, "Audio Latency", latencyLabel, latencyColor);
             }
         }
 
@@ -156,6 +197,16 @@ namespace MaestroZoo
         {
             Rect r = new Rect(x, y, 400f, lineH);
             GUI.Label(r, "=== ROKID DEBUG PANEL ===", headerStyle);
+            return y + lineH;
+        }
+
+        private float DrawHeader(float x, float y, float lineH, string text, Color color)
+        {
+            Color prev = GUI.color;
+            GUI.color = color;
+            Rect r = new Rect(x, y, 400f, lineH);
+            GUI.Label(r, text, headerStyle);
+            GUI.color = prev;
             return y + lineH;
         }
 
