@@ -122,15 +122,23 @@ public static class MaestroSceneBuilder
         animalsRoot.transform.SetParent(directorGo.transform);
 
         string[] ids   = { "RabbitDrum",   "FoxViolin",    "BearCello",    "BirdFlute",    "ElephantHorn" };
-        string[] roles = { "Drummer",      "Violinist",    "Cellist",      "Flutist",      "Hornist" };
+        string[] roles = { "Drummer",      "Violinist",    "Cellist",      "Flutist",      "Pianist" };
         Vector3[] pos  = { new(-2.3f,1f,0.8f), new(-1.15f,1f,0.3f), new(0f,1.1f,0.9f), new(1.15f,1.3f,0.1f), new(2.3f,1.2f,0.8f) };
         Color[] colors = { new(1f,0.62f,0.75f), new(1f,0.48f,0.18f), new(0.52f,0.33f,0.18f), new(0.35f,0.6f,1f), new(0.48f,0.52f,0.7f) };
+        string[] models =
+        {
+            "Assets/Models/Animals/小猫待机.fbx",
+            "Assets/Models/Animals/小狐狸待机.fbx",
+            "Assets/Models/Animals/小熊待机.fbx",
+            "Assets/Models/Animals/小鸟待机 - 副本.fbx",
+            "Assets/Models/Animals/小象待机.fbx"
+        };
         string[] inst  = { "Assets/Models/Instruments/Drum_Set.fbx", "Assets/Models/Instruments/Violin.glb",
-                           "Assets/Models/Instruments/Cello.fbx", "Assets/Models/Instruments/Flute.glb", null };
+                           "Assets/Models/Instruments/Cello.fbx", "Assets/Models/Instruments/Flute.glb", "Assets/Models/Instruments/Grand_Piano.glb" };
 
         for (int i = 0; i < 5; i++)
         {
-            var animal = BuildAnimal(animalsRoot.transform, ids[i], roles[i], pos[i], colors[i], inst[i]);
+            BuildAnimal(animalsRoot.transform, ids[i], roles[i], pos[i], colors[i], models[i], inst[i]);
         }
 
         foreach (var a in animalsRoot.GetComponentsInChildren<AnimalPerformer>())
@@ -151,36 +159,34 @@ public static class MaestroSceneBuilder
     }
 
     static GameObject BuildAnimal(Transform parent, string id, string role,
-        Vector3 pos, Color color, string instrumentPath)
+        Vector3 pos, Color color, string modelPath, string instrumentPath)
     {
         var go = new GameObject(id);
         go.transform.SetParent(parent);
         go.transform.localPosition = pos;
 
-        // Body
-        var b = GameObject.CreatePrimitive(PrimitiveType.Capsule);
-        b.name = "Body"; b.transform.SetParent(go.transform);
-        b.transform.localPosition = new Vector3(0, 0.3f, 0);
-        b.transform.localScale = new Vector3(0.35f, 0.45f, 0.3f);
-        b.GetComponent<Renderer>().material.color = color;
-
-        // Head
-        var h = GameObject.CreatePrimitive(PrimitiveType.Sphere);
-        h.name = "Head"; h.transform.SetParent(go.transform);
-        h.transform.localPosition = new Vector3(0, 0.68f, 0);
-        h.transform.localScale = new Vector3(0.22f, 0.26f, 0.2f);
-        h.GetComponent<Renderer>().material.color = color * 0.85f;
-
-        // Ears
-        var eL = GameObject.CreatePrimitive(PrimitiveType.Sphere);
-        eL.name = "EarL"; eL.transform.SetParent(h.transform);
-        eL.transform.localPosition = new Vector3(-0.15f, 0.2f, 0);
-        eL.transform.localScale = new Vector3(0.22f, 0.38f, 0.18f);
-
-        var eR = GameObject.CreatePrimitive(PrimitiveType.Sphere);
-        eR.name = "EarR"; eR.transform.SetParent(h.transform);
-        eR.transform.localPosition = new Vector3(0.15f, 0.2f, 0);
-        eR.transform.localScale = new Vector3(0.22f, 0.38f, 0.18f);
+        Renderer bodyRenderer = null;
+        GameObject modelAsset = AssetDatabase.LoadAssetAtPath<GameObject>(modelPath);
+        if (modelAsset != null)
+        {
+            GameObject model = (GameObject)PrefabUtility.InstantiatePrefab(modelAsset);
+            model.name = "AnimalModel";
+            model.transform.SetParent(go.transform);
+            model.transform.localPosition = Vector3.zero;
+            model.transform.localRotation = Quaternion.Euler(0f, 180f, 0f);
+            model.transform.localScale = Vector3.one * 0.55f;
+            bodyRenderer = model.GetComponentInChildren<Renderer>();
+        }
+        else
+        {
+            GameObject body = GameObject.CreatePrimitive(PrimitiveType.Capsule);
+            body.name = "Body";
+            body.transform.SetParent(go.transform);
+            body.transform.localPosition = new Vector3(0, 0.3f, 0);
+            body.transform.localScale = new Vector3(0.35f, 0.45f, 0.3f);
+            bodyRenderer = body.GetComponent<Renderer>();
+            bodyRenderer.material.color = color;
+        }
 
         // Instrument
         if (!string.IsNullOrEmpty(instrumentPath))
@@ -191,8 +197,9 @@ public static class MaestroSceneBuilder
                 var inst = (GameObject)PrefabUtility.InstantiatePrefab(ip);
                 inst.name = "Instrument";
                 inst.transform.SetParent(go.transform);
-                inst.transform.localPosition = new Vector3(0.35f, 0.2f, -0.15f);
-                inst.transform.localScale = Vector3.one * 0.3f;
+                inst.transform.localPosition = new Vector3(0.38f, 0.18f, -0.18f);
+                inst.transform.localRotation = Quaternion.Euler(0f, 180f, 0f);
+                inst.transform.localScale = Vector3.one * 0.28f;
             }
         }
 
@@ -207,7 +214,7 @@ public static class MaestroSceneBuilder
 
         var ap = go.AddComponent<AnimalPerformer>();
         ap.animalId = id; ap.displayName = role;
-        ap.bodyRenderer = b.GetComponent<Renderer>(); ap.label = tm;
+        ap.bodyRenderer = bodyRenderer; ap.label = tm;
 
         return go;
     }
