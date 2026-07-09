@@ -9,11 +9,22 @@ namespace MaestroZoo
         public Renderer bodyRenderer;
         public TextMesh label;
 
+        [Header("Models")]
+        [Tooltip("Idle model (always visible, subtle bounce)")]
+        public GameObject idleModel;
+
+        [Tooltip("Score animation model (briefly shown on hit)")]
+        public GameObject scoreModel;
+
+        [Tooltip("How long the score model stays visible (seconds)")]
+        public float scoreModelDuration = 0.55f;
+
         private Color baseColor;
         private Vector3 baseScale;
         private Vector3 basePosition;
         private float excitement;
         private float shake;
+        private float scoreModelTimer;
 
         private void Awake()
         {
@@ -22,13 +33,20 @@ namespace MaestroZoo
 
             if (bodyRenderer == null)
             {
-                bodyRenderer = GetComponentInChildren<Renderer>();
+                // Prefer idle model renderer, fallback to any child renderer
+                if (idleModel != null)
+                    bodyRenderer = idleModel.GetComponentInChildren<Renderer>();
+                if (bodyRenderer == null)
+                    bodyRenderer = GetComponentInChildren<Renderer>();
             }
 
             if (bodyRenderer != null)
             {
                 baseColor = bodyRenderer.material.color;
             }
+
+            // Start with idle model visible, score model hidden
+            ShowIdleModel();
         }
 
         private void Update()
@@ -45,6 +63,16 @@ namespace MaestroZoo
             {
                 Color target = Color.Lerp(baseColor, Color.white, excitement * 0.65f);
                 bodyRenderer.material.color = target;
+            }
+
+            // Score model timer — switch back to idle when expired
+            if (scoreModelTimer > 0f)
+            {
+                scoreModelTimer -= Time.deltaTime;
+                if (scoreModelTimer <= 0f)
+                {
+                    ShowIdleModel();
+                }
             }
         }
 
@@ -63,6 +91,7 @@ namespace MaestroZoo
         public void Hit(float amount)
         {
             excitement = Mathf.Clamp01(excitement + amount);
+            ShowScoreModel();
         }
 
         public void Miss()
@@ -82,6 +111,20 @@ namespace MaestroZoo
             calm.a = 1f;
             Color happy = Color.Lerp(baseColor, Color.white, 0.35f);
             bodyRenderer.material.color = Color.Lerp(calm, happy, mood01);
+        }
+
+        private void ShowScoreModel()
+        {
+            if (idleModel != null) idleModel.SetActive(false);
+            if (scoreModel != null) scoreModel.SetActive(true);
+            scoreModelTimer = scoreModelDuration;
+        }
+
+        private void ShowIdleModel()
+        {
+            scoreModelTimer = 0f;
+            if (idleModel != null) idleModel.SetActive(true);
+            if (scoreModel != null) scoreModel.SetActive(false);
         }
     }
 }

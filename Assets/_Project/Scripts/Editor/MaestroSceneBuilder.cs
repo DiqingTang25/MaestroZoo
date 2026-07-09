@@ -125,20 +125,42 @@ public static class MaestroSceneBuilder
         string[] roles = { "Drummer",      "Violinist",    "Cellist",      "Flutist",      "Pianist" };
         Vector3[] pos  = { new(-2.3f,1f,0.8f), new(-1.15f,1f,0.3f), new(0f,1.1f,0.9f), new(1.15f,1.3f,0.1f), new(2.3f,1.2f,0.8f) };
         Color[] colors = { new(1f,0.62f,0.75f), new(1f,0.48f,0.18f), new(0.52f,0.33f,0.18f), new(0.35f,0.6f,1f), new(0.48f,0.52f,0.7f) };
-        string[] models =
+
+        string[] instruments =
         {
-            "Assets/Models/Animals/小猫待机.fbx",
-            "Assets/Models/Animals/小狐狸待机.fbx",
-            "Assets/Models/Animals/小熊待机.fbx",
-            "Assets/Models/Animals/小鸟待机 - 副本.fbx",
-            "Assets/Models/Animals/小象待机.fbx"
+            "Assets/Models/Instruments/Drum_Set.fbx",
+            "Assets/Models/Instruments/Violin.glb",
+            "Assets/Models/Instruments/Cello.fbx",
+            "Assets/Models/Instruments/Flute.glb",
+            "Assets/Models/Instruments/Grand_Piano.glb"
         };
-        string[] inst  = { "Assets/Models/Instruments/Drum_Set.fbx", "Assets/Models/Instruments/Violin.glb",
-                           "Assets/Models/Instruments/Cello.fbx", "Assets/Models/Instruments/Flute.glb", "Assets/Models/Instruments/Grand_Piano.glb" };
+
+        // Idle models per animal
+        // NOTE: Rabbit model is missing; using Cat (小猫) as placeholder for RabbitDrum.
+        string[] idleModels =
+        {
+            "Assets/Models/Animals/小猫待机.fbx",       // RabbitDrum ← Cat placeholder (Rabbit missing)
+            "Assets/Models/Animals/小狐狸待机.fbx",     // FoxViolin
+            "Assets/Models/Animals/小熊待机.fbx",       // BearCello
+            "Assets/Models/Animals/小鸟待机 - 副本.fbx", // BirdFlute (TODO: rename to 小鸟待机.fbx)
+            "Assets/Models/Animals/小象待机.fbx"        // ElephantHorn
+        };
+
+        // Score animation models per animal
+        // NOTE: Bird score is .blend (needs Blender to auto-convert to FBX in Unity).
+        string[] scoreModels =
+        {
+            "Assets/Models/Animals/小猫得分1.fbx",      // RabbitDrum ← Cat placeholder (Rabbit missing)
+            "Assets/Models/Animals/小狐狸得分.fbx",     // FoxViolin
+            "Assets/Models/Animals/小熊得分.fbx",       // BearCello
+            "Assets/Models/Animals/小鸟得分.blend",     // BirdFlute (blend, needs Blender installed)
+            "Assets/Models/Animals/小象得分.fbx"        // ElephantHorn
+        };
 
         for (int i = 0; i < 5; i++)
         {
-            BuildAnimal(animalsRoot.transform, ids[i], roles[i], pos[i], colors[i], models[i], inst[i]);
+            BuildAnimal(animalsRoot.transform, ids[i], roles[i], pos[i],
+                colors[i], idleModels[i], scoreModels[i], instruments[i]);
         }
 
         foreach (var a in animalsRoot.GetComponentsInChildren<AnimalPerformer>())
@@ -159,36 +181,63 @@ public static class MaestroSceneBuilder
     }
 
     static GameObject BuildAnimal(Transform parent, string id, string role,
-        Vector3 pos, Color color, string modelPath, string instrumentPath)
+        Vector3 pos, Color color, string idleModelPath, string scoreModelPath,
+        string instrumentPath)
     {
         var go = new GameObject(id);
         go.transform.SetParent(parent);
         go.transform.localPosition = pos;
 
         Renderer bodyRenderer = null;
-        GameObject modelAsset = AssetDatabase.LoadAssetAtPath<GameObject>(modelPath);
-        if (modelAsset != null)
+        GameObject idleModel = null;
+        GameObject scoreModel = null;
+
+        // --- Idle Model ---
+        GameObject idleAsset = AssetDatabase.LoadAssetAtPath<GameObject>(idleModelPath);
+        if (idleAsset != null)
         {
-            GameObject model = (GameObject)PrefabUtility.InstantiatePrefab(modelAsset);
-            model.name = "AnimalModel";
-            model.transform.SetParent(go.transform);
-            model.transform.localPosition = Vector3.zero;
-            model.transform.localRotation = Quaternion.Euler(0f, 180f, 0f);
-            model.transform.localScale = Vector3.one * 0.55f;
-            bodyRenderer = model.GetComponentInChildren<Renderer>();
+            idleModel = (GameObject)PrefabUtility.InstantiatePrefab(idleAsset);
+            idleModel.name = "IdleModel";
+            idleModel.transform.SetParent(go.transform);
+            idleModel.transform.localPosition = Vector3.zero;
+            idleModel.transform.localRotation = Quaternion.Euler(0f, 180f, 0f);
+            idleModel.transform.localScale = Vector3.one * 0.55f;
+            bodyRenderer = idleModel.GetComponentInChildren<Renderer>();
         }
         else
         {
-            GameObject body = GameObject.CreatePrimitive(PrimitiveType.Capsule);
-            body.name = "Body";
-            body.transform.SetParent(go.transform);
-            body.transform.localPosition = new Vector3(0, 0.3f, 0);
-            body.transform.localScale = new Vector3(0.35f, 0.45f, 0.3f);
-            bodyRenderer = body.GetComponent<Renderer>();
+            // Fallback: primitive capsule when model is missing
+            idleModel = GameObject.CreatePrimitive(PrimitiveType.Capsule);
+            idleModel.name = "IdleModel_Fallback";
+            idleModel.transform.SetParent(go.transform);
+            idleModel.transform.localPosition = new Vector3(0, 0.3f, 0);
+            idleModel.transform.localScale = new Vector3(0.35f, 0.45f, 0.3f);
+            bodyRenderer = idleModel.GetComponent<Renderer>();
             bodyRenderer.material.color = color;
+            Debug.LogWarning($"[SceneBuilder] Missing idle model for {id}: {idleModelPath}");
         }
 
-        // Instrument
+        // --- Score Animation Model ---
+        if (!string.IsNullOrEmpty(scoreModelPath))
+        {
+            GameObject scoreAsset = AssetDatabase.LoadAssetAtPath<GameObject>(scoreModelPath);
+            if (scoreAsset != null)
+            {
+                scoreModel = (GameObject)PrefabUtility.InstantiatePrefab(scoreAsset);
+                scoreModel.name = "ScoreModel";
+                scoreModel.transform.SetParent(go.transform);
+                scoreModel.transform.localPosition = Vector3.zero;
+                scoreModel.transform.localRotation = Quaternion.Euler(0f, 180f, 0f);
+                scoreModel.transform.localScale = Vector3.one * 0.55f;
+                scoreModel.SetActive(false); // Hidden by default
+            }
+            else
+            {
+                Debug.LogWarning($"[SceneBuilder] Missing score model for {id}: {scoreModelPath}");
+            }
+        }
+
+        // --- Instrument ---
         if (!string.IsNullOrEmpty(instrumentPath))
         {
             var ip = AssetDatabase.LoadAssetAtPath<GameObject>(instrumentPath);
@@ -203,7 +252,7 @@ public static class MaestroSceneBuilder
             }
         }
 
-        // Label
+        // --- Label ---
         var lbl = new GameObject("Label");
         lbl.transform.SetParent(go.transform);
         lbl.transform.localPosition = new Vector3(0, 1.05f, 0);
@@ -215,6 +264,8 @@ public static class MaestroSceneBuilder
         var ap = go.AddComponent<AnimalPerformer>();
         ap.animalId = id; ap.displayName = role;
         ap.bodyRenderer = bodyRenderer; ap.label = tm;
+        ap.idleModel = idleModel;
+        ap.scoreModel = scoreModel;
 
         return go;
     }

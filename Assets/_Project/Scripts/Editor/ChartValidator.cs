@@ -5,17 +5,46 @@ using UnityEngine;
 
 namespace MaestroZoo
 {
-    /// <summary>
-    /// 谱面 JSON 校验工具。
-    /// 在 Project 窗口选中 chart JSON → 右键 → Validate Chart。
-    /// 也提供静态方法供 CI/自动化使用。
-    /// </summary>
     public static class ChartValidator
     {
-        private static readonly HashSet<string> ValidGestures = new(StringComparer.OrdinalIgnoreCase)
+        private static readonly HashSet<string> ValidGestures = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
         {
-            "Up", "Down", "Left", "Right", "Expand", "Close"
+            "Up",
+            "Down",
+            "Left",
+            "Right",
+            "Expand",
+            "Close"
         };
+
+        [MenuItem("Maestro Zoo/Validate All Charts")]
+        private static void ValidateAllCharts()
+        {
+            string[] guids = AssetDatabase.FindAssets("t:TextAsset", new[] { "Assets/_Project/Resources/Charts" });
+            int validCount = 0;
+            int invalidCount = 0;
+
+            foreach (string guid in guids)
+            {
+                string path = AssetDatabase.GUIDToAssetPath(guid);
+                TextAsset asset = AssetDatabase.LoadAssetAtPath<TextAsset>(path);
+                if (asset == null || !path.EndsWith(".json", StringComparison.OrdinalIgnoreCase))
+                {
+                    continue;
+                }
+
+                if (LogValidation(path, asset))
+                {
+                    validCount++;
+                }
+                else
+                {
+                    invalidCount++;
+                }
+            }
+
+            Debug.Log($"[ChartValidator] Completed. Valid={validCount}, Invalid={invalidCount}");
+        }
 
         [MenuItem("Assets/MaestroZoo/Validate Chart", false, 200)]
         private static void ValidateSelected()
@@ -30,22 +59,9 @@ namespace MaestroZoo
                 }
 
                 TextAsset asset = AssetDatabase.LoadAssetAtPath<TextAsset>(path);
-                if (asset == null) continue;
-
-                var (valid, errors, warnings) = Validate(asset);
-                if (valid)
+                if (asset != null)
                 {
-                    Debug.Log($"[ChartValidator] ✅ {path} — VALID ({warnings.Count} warning(s))");
-                    foreach (string w in warnings)
-                        Debug.LogWarning($"  ⚠ {w}");
-                }
-                else
-                {
-                    Debug.LogError($"[ChartValidator] ❌ {path} — {errors.Count} ERROR(S)");
-                    foreach (string e in errors)
-                        Debug.LogError($"  ❌ {e}");
-                    foreach (string w in warnings)
-                        Debug.LogWarning($"  ⚠ {w}");
+                    LogValidation(path, asset);
                 }
             }
         }
@@ -57,18 +73,18 @@ namespace MaestroZoo
             {
                 string path = AssetDatabase.GetAssetPath(obj);
                 if (path.EndsWith(".json", StringComparison.OrdinalIgnoreCase))
+                {
                     return true;
+                }
             }
+
             return false;
         }
 
-        /// <summary>
-        /// 校验谱面。返回 (是否通过, 错误列表, 警告列表)。
-        /// </summary>
         public static (bool valid, List<string> errors, List<string> warnings) Validate(TextAsset asset)
         {
-            var errors = new List<string>();
-            var warnings = new List<string>();
+            List<string> errors = new List<string>();
+            List<string> warnings = new List<string>();
 
             if (asset == null)
             {
@@ -89,23 +105,66 @@ namespace MaestroZoo
 
             if (chart == null)
             {
-                errors.Add("Deserialized ChartData is null — check JSON structure.");
+                errors.Add("Deserialized ChartData is null. Check the JSON structure.");
                 return (false, errors, warnings);
             }
 
-            // --- Metadata ---
-            if (string.IsNullOrWhiteSpace(chart.songName))
-                warnings.Add("Song name is empty.");
-            if (chart.bpm <= 0 || chart.bpm > 300)
-                errors.Add($"BPM={chart.bpm} is out of reasonable range (1–300).");
-            if (chart.leadTime <= 0f || chart.leadTime > 10f)
-                warnings.Add($"Lead time={chart.leadTime}s is unusual (expected 1–5s).");
+            ValidateMetadata(chart, warnings, errors);
+            ValidateNotes(chart, warnings, errors);
+            ValidateLengthAndDensity(chart, warnings);
 
-            // --- Notes ---
+            return (errors.Count == 0, errors, warnings);
+        }
+
+        private static bool LogValidation(string path, TextAsset asset)
+        {
+            (bool valid, List<string> errors, List<string> warnings) = Validate(asset);
+            if (valid)
+            {
+                Debug.Log($"[ChartValidator] VALID: {path} ({warnings.Count} warning(s))");
+            }
+            else
+            {
+                Debug.LogError($"[ChartValidator] INVALID: {path} ({errors.Count} error(s))");
+            }
+
+            foreach (string error in errors)
+            {
+                Debug.LogError($"[ChartValidator] {path}: {error}");
+            }
+
+            foreach (string warning in warnings)
+            {
+                Debug.LogWarning($"[ChartValidator] {path}: {warning}");
+            }
+
+            return valid;
+        }
+
+        private static void ValidateMetadata(ChartData chart, List<string> warnings, List<string> errors)
+        {
+            if (string.IsNullOrWhiteSpace(chart.songName))
+            {
+                warnings.Add("Song name is empty.");
+            }
+
+            if (chart.bpm <= 0 || chart.bpm > 300)
+            {
+                errors.Add($"BPM={chart.bpm} is outside the expected range (1-300).");
+            }
+
+            if (chart.leadTime <= 0f || chart.leadTime > 10f)
+            {
+                warnings.Add($"Lead time={chart.leadTime}s is unusual (expected 1-10s).");
+            }
+        }
+
+        private static void ValidateNotes(ChartData chart, List<string> warnings, List<string> errors)
+        {
             if (chart.notes == null || chart.notes.Length == 0)
             {
                 errors.Add("Chart has no notes.");
-                return (false, errors, warnings);
+                return;
             }
 
             float lastTime = -1f;
@@ -121,36 +180,61 @@ namespace MaestroZoo
                 }
 
                 if (note.time < 0f)
+                {
                     errors.Add($"{prefix} time={note.time} is negative.");
+                }
+
                 if (note.time < lastTime)
+                {
                     errors.Add($"{prefix} time={note.time} is before previous note ({lastTime}). Notes must be sorted by time.");
-                if (note.time - lastTime < 0.05f && lastTime >= 0f)
-                    warnings.Add($"{prefix} time={note.time} is very close to previous note ({lastTime}). May be impossible to play.");
+                }
+
+                if (lastTime >= 0f && note.time - lastTime < 0.05f)
+                {
+                    warnings.Add($"{prefix} time={note.time} is very close to previous note ({lastTime}).");
+                }
 
                 if (string.IsNullOrWhiteSpace(note.gesture))
+                {
                     errors.Add($"{prefix} gesture field is empty.");
+                }
                 else if (!ValidGestures.Contains(note.gesture))
-                    errors.Add($"{prefix} gesture='{note.gesture}' is not a valid GestureType. Valid: {string.Join(", ", ValidGestures)}");
+                {
+                    errors.Add($"{prefix} gesture='{note.gesture}' is invalid. Valid gestures: {string.Join(", ", ValidGestures)}");
+                }
 
                 lastTime = note.time;
             }
+        }
 
-            // --- End time ---
+        private static void ValidateLengthAndDensity(ChartData chart, List<string> warnings)
+        {
+            if (chart.notes == null || chart.notes.Length == 0)
+            {
+                return;
+            }
+
             float endTime = chart.GetEndTime();
             if (endTime < 10f)
+            {
                 warnings.Add($"Chart is very short ({endTime:F1}s).");
-            if (endTime > 600f)
-                warnings.Add($"Chart is very long ({endTime:F1}s).");
+            }
 
-            // --- Note density ---
+            if (endTime > 600f)
+            {
+                warnings.Add($"Chart is very long ({endTime:F1}s).");
+            }
+
             float density = chart.notes.Length / Mathf.Max(endTime, 1f);
             if (density > 4f)
-                warnings.Add($"Note density is high ({density:F1} notes/sec). May be too hard.");
-            if (density < 0.1f)
-                warnings.Add($"Note density is very low ({density:F2} notes/sec). May be too easy.");
+            {
+                warnings.Add($"Note density is high ({density:F1} notes/sec).");
+            }
 
-            bool valid = errors.Count == 0;
-            return (valid, errors, warnings);
+            if (density < 0.1f)
+            {
+                warnings.Add($"Note density is very low ({density:F2} notes/sec).");
+            }
         }
     }
 }

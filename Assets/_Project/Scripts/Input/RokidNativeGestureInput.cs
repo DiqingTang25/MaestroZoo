@@ -33,6 +33,24 @@ namespace MaestroZoo
         public bool IsTrackingAvailable { get; private set; }
         public event Action<MaestroZoo.GestureType, float> GestureCaptured;
 
+        // --- Device Readiness ---
+        public enum ReadinessState
+        {
+            Unknown,
+            Initializing,
+            Ready,
+            Error_NoGesEventInput,
+            Error_NoHandTracking
+        }
+
+        public ReadinessState DeviceReadiness { get; private set; } = ReadinessState.Unknown;
+        public string DeviceReadinessMessage { get; private set; } = "Not initialized.";
+
+        // Track which gestures have been detected this session (for device verification)
+        private readonly HashSet<MaestroZoo.GestureType> gesturesDetectedThisSession = new HashSet<MaestroZoo.GestureType>();
+        public bool AllGesturesDetected => gesturesDetectedThisSession.Count >= 6;
+        public string DetectedGesturesReport => $"Detected [{gesturesDetectedThisSession.Count}/6]: {string.Join(", ", gesturesDetectedThisSession)}";
+
         // --- Debug Info (read by RokidDebugPanel) ---
         public bool IsLeftHandTracked => trackers[HandType.LeftHand].CurrentPosition.HasValue;
         public bool IsRightHandTracked => trackers[HandType.RightHand].CurrentPosition.HasValue;
@@ -77,20 +95,39 @@ namespace MaestroZoo
 
         private void OnEnable()
         {
-            GesEventInput.OnProcessGesData += HandleProcessGesData;
-            GesEventInput.OnTrackedSuccess += HandleTrackedSuccess;
-            GesEventInput.OnTrackedFailed += HandleTrackedFailed;
+            try
+            {
+                GesEventInput.OnProcessGesData += HandleProcessGesData;
+                GesEventInput.OnTrackedSuccess += HandleTrackedSuccess;
+                GesEventInput.OnTrackedFailed += HandleTrackedFailed;
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError($"[RokidNative] Failed to subscribe to GesEventInput events: {ex.Message}");
+                DeviceReadiness = ReadinessState.Error_NoGesEventInput;
+                DeviceReadinessMessage = $"GesEventInput subscription failed: {ex.Message}";
+            }
         }
 
         private void OnDisable()
         {
-            GesEventInput.OnProcessGesData -= HandleProcessGesData;
-            GesEventInput.OnTrackedSuccess -= HandleTrackedSuccess;
-            GesEventInput.OnTrackedFailed -= HandleTrackedFailed;
+            try
+            {
+                GesEventInput.OnProcessGesData -= HandleProcessGesData;
+                GesEventInput.OnTrackedSuccess -= HandleTrackedSuccess;
+                GesEventInput.OnTrackedFailed -= HandleTrackedFailed;
+            }
+            catch (Exception ex)
+            {
+                Debug.LogWarning($"[RokidNative] Error unsubscribing from GesEventInput: {ex.Message}");
+            }
         }
 
         private void Start()
         {
+            DeviceReadiness = ReadinessState.Initializing;
+            DeviceReadinessMessage = "Checking GesEventInput availability...";
+
             if (preset != null)
             {
                 preset.ApplyTo(this);
@@ -98,7 +135,15 @@ namespace MaestroZoo
 
             if (GesEventInput.Instance == null)
             {
-                Debug.LogWarning("[RokidNative] GesEventInput is not initialized. Rokid hand tracking will not produce gameplay input until the Rokid gesture service is available.");
+                DeviceReadiness = ReadinessState.Error_NoGesEventInput;
+                DeviceReadinessMessage = "GesEventInput.Instance is null — not running on Rokid device or gesture service unavailable.";
+                Debug.LogWarning($"[RokidNative] {DeviceReadinessMessage}");
+            }
+            else
+            {
+                DeviceReadiness = ReadinessState.Ready;
+                DeviceReadinessMessage = "GesEventInput available. Waiting for hand tracking...";
+                Debug.Log("[RokidNative] GesEventInput initialized. Ready for hand tracking.");
             }
         }
 
@@ -116,6 +161,13 @@ namespace MaestroZoo
 
             ResetDistanceBaselines();
             IsTrackingAvailable = IsAnyHandTracked();
+
+            if (!IsTrackingAvailable && DeviceReadiness == ReadinessState.Ready)
+            {
+                DeviceReadiness = ReadinessState.Error_NoHandTracking;
+                DeviceReadinessMessage = $"Hand tracking lost ({handType}).";
+                Debug.LogWarning($"[RokidNative] {DeviceReadinessMessage}");
+            }
         }
 
         private void HandleProcessGesData(HandType handType, GestureBean bean)
@@ -256,6 +308,9 @@ namespace MaestroZoo
             LastGesture = gesture;
             LastGestureTimestamp = inputTime;
             GestureCaptured?.Invoke(gesture, inputTime);
+
+            // Track gesture coverage for real-device verification
+            gesturesDetectedThisSession.Add(gesture);
 
             // Record history (ring buffer, newest first)
             GestureHistory.Insert(0, new GestureRecord
