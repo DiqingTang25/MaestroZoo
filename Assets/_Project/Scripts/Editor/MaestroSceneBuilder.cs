@@ -27,12 +27,12 @@ public static class MaestroSceneBuilder
         var lightGo = new GameObject("Directional Light");
         var dl = lightGo.AddComponent<Light>();
         dl.type = LightType.Directional;
-        dl.intensity = 2.35f;
+        dl.intensity = 0.85f;
         dl.shadows = LightShadows.Soft;
         dl.color = new Color(1f, 0.96f, 0.88f);
         lightGo.transform.rotation = Quaternion.Euler(48f, 110f, 8f);
         RenderSettings.ambientMode = UnityEngine.Rendering.AmbientMode.Flat;
-        RenderSettings.ambientLight = new Color(0.52f, 0.56f, 0.62f);
+        RenderSettings.ambientLight = new Color(0.18f, 0.2f, 0.23f);
 
         // ═══ FOREST STAGE ═══
         var stageGo = new GameObject("Stage");
