@@ -17,6 +17,17 @@ namespace MaestroZoo
         public string CurrentModeTitle { get; private set; } = "Maestro Zoo";
         public string CurrentChartPath { get; private set; } = "";
 
+        /// <summary>Current difficulty level applied to judging.</summary>
+        public DifficultyLevel CurrentDifficulty
+        {
+            get
+            {
+                if (judgeManager != null && judgeManager.difficultyProfile != null)
+                    return judgeManager.difficultyProfile.level;
+                return DifficultyLevel.Normal;
+            }
+        }
+
         private void Start()
         {
             Subscribe();

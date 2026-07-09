@@ -14,6 +14,14 @@ namespace MaestroZoo
         public float goodWindow = 0.18f;
         public float missWindow = 0.35f;
 
+        [Header("Difficulty")]
+        [Tooltip("Optional difficulty profile. Overrides timing windows on Start.")]
+        public DifficultyProfile difficultyProfile;
+
+        [Header("Scoring")]
+        public int scorePerPerfect = 1000;
+        public int scorePerGood = 500;
+
         public int Score { get; private set; }
         public int Combo { get; private set; }
         public int MaxCombo { get; private set; }
@@ -62,6 +70,14 @@ namespace MaestroZoo
         private void Awake()
         {
             ResolveInput();
+        }
+
+        private void Start()
+        {
+            if (difficultyProfile != null)
+            {
+                difficultyProfile.ApplyTo(this);
+            }
         }
 
         private void Update()
@@ -249,13 +265,13 @@ namespace MaestroZoo
 
             if (result == JudgeResult.Perfect)
             {
-                Score += 1000;
+                Score += scorePerPerfect;
                 Combo++;
                 PerfectCount++;
             }
             else if (result == JudgeResult.Good)
             {
-                Score += 500;
+                Score += scorePerGood;
                 Combo++;
                 GoodCount++;
             }

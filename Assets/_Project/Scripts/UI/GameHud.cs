@@ -132,7 +132,10 @@ namespace MaestroZoo
 
             if (resultsTitleText != null)
             {
-                resultsTitleText.text = string.IsNullOrEmpty(title) ? "Results" : title;
+                string diffLabel = judgeManager?.difficultyProfile != null
+                    ? $" [{judgeManager.difficultyProfile.DisplayName}]"
+                    : "";
+                resultsTitleText.text = (string.IsNullOrEmpty(title) ? "Results" : title) + diffLabel;
             }
 
             if (resultsScoreText != null)
