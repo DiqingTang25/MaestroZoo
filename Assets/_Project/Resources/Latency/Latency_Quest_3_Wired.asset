@@ -1,0 +1,17 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d929a24290d7b6649963b00e240b714a, type: 3}
+  m_Name: Latency_Quest_3_Wired
+  m_EditorClassIdentifier: 
+  deviceName: Quest 3 Wired
+  latencySeconds: 0.03
+  description: Meta Quest 3 with USB-C audio

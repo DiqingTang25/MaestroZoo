@@ -220,30 +220,10 @@ public static class MaestroSceneBuilder
         sfx.judgeManager = judge;
         sfx.gestureInput = inputDispatcher;
 
-        // --- Owl Model (3D Teacher) ---
-        var owlModelAsset = AssetDatabase.LoadAssetAtPath<GameObject>(
-            "Assets/Models/Animals/OwlTeacher.fbx");
-        GameObject owlModel = null;
-        if (owlModelAsset != null)
-        {
-            owlModel = (GameObject)PrefabUtility.InstantiatePrefab(owlModelAsset);
-            owlModel.name = "OwlTeacher_Root";
-            owlModel.transform.SetParent(directorGo.transform);
-            owlModel.transform.localPosition = new Vector3(2.5f, 1.1f, 0f);
-            owlModel.transform.localRotation = Quaternion.Euler(0f, 180f, 0f);
-            owlModel.transform.localScale = Vector3.one * 0.8f;
-            owlModel.SetActive(false); // Hidden until tutorial starts
-        }
-        else
-        {
-            Debug.LogWarning("[SceneBuilder] OwlTeacher.fbx not found. Run 'Maestro Zoo/Generate Owl Teacher' first.");
-        }
-
-        // --- Owl Tutorial System ---
+        // --- Tutorial System (UI-guided, no 3D owl model) ---
         var owlTutorial = directorGo.AddComponent<OwlTutorialController>();
         owlTutorial.gameDirector = director;
         owlTutorial.judgeManager = judge;
-        owlTutorial.owlModelRoot = owlModel;
 
         // --- FreeStage Controller ---
         var freeStage = directorGo.AddComponent<FreeStageController>();
