@@ -68,14 +68,17 @@ public static class MaestroSceneBuilder
         judge.chartPlayer = chartPlayer;
         judge.noteSpawner = noteSpawner;
 
-        var kbInput = directorGo.AddComponent<KeyboardGestureInput>();
         var nativeInput = directorGo.AddComponent<RokidNativeGestureInput>();
         var handInput = directorGo.AddComponent<RokidHandGestureInput>();
         var inputDispatcher = directorGo.AddComponent<GestureInputDispatcher>();
-        inputDispatcher.keyboardInput = kbInput;
         inputDispatcher.nativeInput = nativeInput;
         inputDispatcher.handInput = handInput;
         judge.inputBehaviour = inputDispatcher;
+
+        var debugPanel = directorGo.AddComponent<RokidDebugPanel>();
+        debugPanel.dispatcher = inputDispatcher;
+        debugPanel.nativeInput = nativeInput;
+        debugPanel.handInput = handInput;
 
         var orchestra = directorGo.AddComponent<OrchestraController>();
         orchestra.judgeManager = judge;
@@ -272,6 +275,9 @@ public static class MaestroSceneBuilder
         var conn = connGo.AddComponent<HudConnector>();
         conn.gameHud = hud; conn.gameDirector = director;
         conn.judgeManager = judge; conn.orchestra = orchestra;
+
+        var feedback = canvasGo.AddComponent<GestureFeedbackDisplay>();
+        feedback.gestureInput = director.gestureInput;
     }
 
     static Text Txt(string n, Transform p, float x, float y, float ax, float ay, int s, TextAnchor a)

@@ -4,7 +4,7 @@ namespace MaestroZoo
 {
     /// <summary>
     /// Auto-selects the best available gesture input source each frame.
-    /// Priority: Rokid native (GesEventInput) > XRHandSubsystem > Keyboard.
+    /// Priority: Rokid native (GesEventInput) > XRHandSubsystem.
     /// Attach to the same GameObject as JudgeManager and assign inputBehaviour.
     /// </summary>
     public class GestureInputDispatcher : MonoBehaviour, IGestureInput
@@ -16,9 +16,6 @@ namespace MaestroZoo
         [Tooltip("Unity XRHandSubsystem hand tracking (fallback for other XR devices).")]
         public RokidHandGestureInput handInput;
 
-        [Tooltip("Keyboard input (Editor fallback).")]
-        public KeyboardGestureInput keyboardInput;
-
         public string ActiveSourceName { get; private set; } = "None";
 
         public bool TryConsumeGesture(out GestureType gesture, out float inputTime)
@@ -29,10 +26,6 @@ namespace MaestroZoo
 
             // Priority 2: Unity XRHandSubsystem
             if (TrySource(handInput, "XRHand", out gesture, out inputTime))
-                return true;
-
-            // Priority 3: Keyboard (always available in Editor)
-            if (TrySource(keyboardInput, "Keyboard", out gesture, out inputTime))
                 return true;
 
             gesture = default;
@@ -49,13 +42,10 @@ namespace MaestroZoo
                 return false;
             }
 
-            // XR sources need to be active AND tracking to claim the frame.
-            // Keyboard is always eligible when enabled.
             bool eligible = source switch
             {
                 RokidNativeGestureInput n => n.isActiveAndEnabled && n.IsTrackingAvailable,
                 RokidHandGestureInput h   => h.isActiveAndEnabled && h.IsTrackingAvailable,
-                KeyboardGestureInput _    => ((MonoBehaviour)source).isActiveAndEnabled,
                 _                         => true
             };
 

@@ -2,10 +2,6 @@ using UnityEngine;
 
 namespace MaestroZoo
 {
-    /// <summary>
-    /// 显示检测到的手势反馈（屏幕中央的图标/文字闪现）。
-    /// 挂到 Canvas 下，订阅 GestureInputDispatcher 中各输入源的 GestureCaptured 事件。
-    /// </summary>
     public class GestureFeedbackDisplay : MonoBehaviour
     {
         [Header("References")]
@@ -24,17 +20,18 @@ namespace MaestroZoo
         public Texture2D expandIcon;
         public Texture2D closeIcon;
 
-        // --- Internal ---
         private GestureType? activeGesture;
         private float activeStartTime;
         private GUIStyle labelStyle;
-        private GUIStyle iconStyle;
         private bool initialized;
+        private bool subscribed;
 
         private void Start()
         {
             if (gestureInput == null)
+            {
                 gestureInput = FindObjectOfType<GestureInputDispatcher>();
+            }
 
             SubscribeToSources();
         }
@@ -51,26 +48,42 @@ namespace MaestroZoo
 
         private void SubscribeToSources()
         {
-            if (gestureInput == null) return;
+            if (subscribed || gestureInput == null)
+            {
+                return;
+            }
 
             if (gestureInput.nativeInput != null)
+            {
                 gestureInput.nativeInput.GestureCaptured += OnGestureCaptured;
+            }
+
             if (gestureInput.handInput != null)
+            {
                 gestureInput.handInput.GestureCaptured += OnGestureCaptured;
-            if (gestureInput.keyboardInput != null)
-                gestureInput.keyboardInput.GestureCaptured += OnGestureCaptured;
+            }
+
+            subscribed = true;
         }
 
         private void UnsubscribeFromSources()
         {
-            if (gestureInput == null) return;
+            if (!subscribed || gestureInput == null)
+            {
+                return;
+            }
 
             if (gestureInput.nativeInput != null)
+            {
                 gestureInput.nativeInput.GestureCaptured -= OnGestureCaptured;
+            }
+
             if (gestureInput.handInput != null)
+            {
                 gestureInput.handInput.GestureCaptured -= OnGestureCaptured;
-            if (gestureInput.keyboardInput != null)
-                gestureInput.keyboardInput.GestureCaptured -= OnGestureCaptured;
+            }
+
+            subscribed = false;
         }
 
         private void OnGestureCaptured(GestureType gesture, float time)
@@ -81,7 +94,10 @@ namespace MaestroZoo
 
         private void OnGUI()
         {
-            if (!activeGesture.HasValue) return;
+            if (!activeGesture.HasValue)
+            {
+                return;
+            }
 
             float elapsed = Time.time - activeStartTime;
             if (elapsed > displayDuration + fadeDuration)
@@ -98,45 +114,39 @@ namespace MaestroZoo
                 alpha = 1f - Mathf.Clamp01((elapsed - displayDuration) / fadeDuration);
             }
 
-            Color prevColor = GUI.color;
+            Color previousColor = GUI.color;
             GUI.color = new Color(1f, 1f, 1f, alpha);
 
             Rect screenRect = new Rect(0, 0, Screen.width, Screen.height);
             Vector2 center = screenRect.center + screenOffset;
 
-            string text = GestureLabel(activeGesture.Value);
             Texture2D icon = GestureIcon(activeGesture.Value);
-
             float iconSize = 96f;
-            float textHeight = 40f;
-            float totalHeight = iconSize + textHeight + 8f;
+            float textHeight = 44f;
+            float totalHeight = icon != null ? iconSize + textHeight + 8f : textHeight;
+            float labelY = center.y - totalHeight / 2f;
 
             if (icon != null)
             {
-                Rect iconRect = new Rect(
-                    center.x - iconSize / 2f,
-                    center.y - totalHeight / 2f,
-                    iconSize,
-                    iconSize);
+                Rect iconRect = new Rect(center.x - iconSize / 2f, labelY, iconSize, iconSize);
                 GUI.DrawTexture(iconRect, icon, ScaleMode.ScaleToFit, true);
+                labelY += iconSize + 8f;
             }
 
-            Rect labelRect = new Rect(
-                center.x - 120f,
-                center.y - totalHeight / 2f + iconSize + 8f,
-                240f,
-                textHeight);
+            Rect labelRect = new Rect(center.x - 140f, labelY, 280f, textHeight);
+            GUI.Label(labelRect, GestureLabel(activeGesture.Value), labelStyle);
 
-            GUI.Label(labelRect, text, labelStyle);
-
-            GUI.color = prevColor;
+            GUI.color = previousColor;
         }
 
         private void InitStyles()
         {
-            if (initialized) return;
-            initialized = true;
+            if (initialized)
+            {
+                return;
+            }
 
+            initialized = true;
             labelStyle = new GUIStyle(GUI.skin.label)
             {
                 alignment = TextAnchor.MiddleCenter,
@@ -150,12 +160,12 @@ namespace MaestroZoo
         {
             return gesture switch
             {
-                GestureType.Up => "▲ UP",
-                GestureType.Down => "▼ DOWN",
-                GestureType.Left => "◄ LEFT",
-                GestureType.Right => "► RIGHT",
-                GestureType.Expand => "◇ EXPAND",
-                GestureType.Close => "◆ CLOSE",
+                GestureType.Up => "UP",
+                GestureType.Down => "DOWN",
+                GestureType.Left => "LEFT",
+                GestureType.Right => "RIGHT",
+                GestureType.Expand => "EXPAND",
+                GestureType.Close => "CLOSE",
                 _ => "?"
             };
         }

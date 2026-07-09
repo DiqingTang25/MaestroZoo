@@ -4284,9 +4284,11 @@ GameObject:
   - component: {fileID: 1506497567}
   - component: {fileID: 1506497566}
   - component: {fileID: 1506497565}
-  - component: {fileID: 1506497564}
+  - component: {fileID: 1506497572}
   - component: {fileID: 1506497570}
   - component: {fileID: 1506497571}
+  - component: {fileID: 1506497573}
+  - component: {fileID: 1506497574}
   - component: {fileID: 1506497563}
   - component: {fileID: 1506497562}
   m_Layer: 0
@@ -4311,8 +4313,7 @@ MonoBehaviour:
   chartPlayer: {fileID: 1506497568}
   noteSpawner: {fileID: 1506497566}
   judgeManager: {fileID: 1506497565}
-  keyboardInput: {fileID: 1506497564}
-  handInput: {fileID: 1506497570}
+  gestureInput: {fileID: 1506497571}
   orchestra: {fileID: 1506497563}
   autoStartChallenge: 1
 --- !u!114 &1506497563
@@ -4329,7 +4330,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   judgeManager: {fileID: 1506497565}
   stageLight: {fileID: 168354940}
---- !u!114 &1506497564
+--- !u!114 &1506497572
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -4338,9 +4339,16 @@ MonoBehaviour:
   m_GameObject: {fileID: 1506497561}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 3a4364d8e6f8e2344a6e1810a4628d18, type: 3}
+  m_Script: {fileID: 11500000, guid: 285baa1cd78e96948b4590e9dd9bf2a2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  moveThreshold: 0.12
+  detectWindow: 0.4
+  cooldown: 0.25
+  expandContractThreshold: 0.15
+  axisDominance: 1.25
+  usePinchForExpandClose: 1
+  pinchThreshold: 0.02
 --- !u!114 &1506497570
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4371,8 +4379,48 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c075eeee76d502a49a80b6d370376bdf, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  nativeInput: {fileID: 1506497572}
   handInput: {fileID: 1506497570}
-  keyboardInput: {fileID: 1506497564}
+--- !u!114 &1506497573
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1506497561}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e3b05587400f8774191f3d2caa53c1e6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  dispatcher: {fileID: 1506497571}
+  nativeInput: {fileID: 1506497572}
+  handInput: {fileID: 1506497570}
+  showOnDevice: 1
+  fontSize: 20
+  panelAlpha: 0.75
+--- !u!114 &1506497574
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1506497561}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e356af300431bb74cad9aebcee543ddf, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  gestureInput: {fileID: 1506497571}
+  displayDuration: 0.5
+  fadeDuration: 0.2
+  screenOffset: {x: 0, y: -120}
+  upIcon: {fileID: 0}
+  downIcon: {fileID: 0}
+  leftIcon: {fileID: 0}
+  rightIcon: {fileID: 0}
+  expandIcon: {fileID: 0}
+  closeIcon: {fileID: 0}
 --- !u!114 &1506497565
 MonoBehaviour:
   m_ObjectHideFlags: 0

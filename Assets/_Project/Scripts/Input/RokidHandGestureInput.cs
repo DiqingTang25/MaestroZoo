@@ -69,7 +69,7 @@ namespace MaestroZoo
 
             if (handSubsystem == null)
             {
-                Debug.Log("[RokidHand] No XRHandSubsystem found. Editor can keep using KeyboardGestureInput.");
+                Debug.Log("[RokidHand] No XRHandSubsystem found. Rokid native gesture input is still the primary source.");
             }
         }
 

@@ -145,8 +145,6 @@ namespace MaestroZoo
                     gestureInput.nativeInput.GestureCaptured += HandleGestureCaptured;
                 if (gestureInput.handInput != null)
                     gestureInput.handInput.GestureCaptured += HandleGestureCaptured;
-                if (gestureInput.keyboardInput != null)
-                    gestureInput.keyboardInput.GestureCaptured += HandleGestureCaptured;
             }
         }
 
@@ -158,8 +156,6 @@ namespace MaestroZoo
                     gestureInput.nativeInput.GestureCaptured -= HandleGestureCaptured;
                 if (gestureInput.handInput != null)
                     gestureInput.handInput.GestureCaptured -= HandleGestureCaptured;
-                if (gestureInput.keyboardInput != null)
-                    gestureInput.keyboardInput.GestureCaptured -= HandleGestureCaptured;
             }
         }
 
