@@ -15,6 +15,10 @@ namespace MaestroZoo
         public JudgeManager judgeManager;
         public GameHud gameHud;
 
+        [Header("Owl Model")]
+        [Tooltip("Root GameObject of the Owl Teacher 3D model (OwlTeacher_Root).")]
+        public GameObject owlModelRoot;
+
         [Header("Tutorial Settings")]
         [Tooltip("Minimum hits required per gesture step (out of notes in that step).")]
         [Range(1, 4)]
@@ -260,6 +264,10 @@ namespace MaestroZoo
             stepCompleted = false;
             stepStartTime = Time.time;
             feedbackShown.Clear();
+
+            // Show owl model during tutorial, hide when idle or complete
+            if (owlModelRoot != null)
+                owlModelRoot.SetActive(step != TutorialStep.Idle);
 
             StepChanged?.Invoke(step);
             InstructionChanged?.Invoke(GetStepInstruction(step));
